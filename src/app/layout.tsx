@@ -8,9 +8,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Failure Safety Checklist | AI Robotics",
+  title: "Site Visit Checklist | AI Robotics",
   description:
-    "Mobile checklist for AI Robotics employees during failure site visits.",
+    "Mobile safety checklist for AI Robotics employees on site visits.",
 };
 
 export const viewport: Viewport = {

@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { STAGE_LABELS, findItemLabel } from "@/lib/checklist";
-import type { FailureStage, SubmitPayload } from "@/lib/types";
-
-const STAGES: FailureStage[] = ["before", "during", "end"];
+import { findItemLabel } from "@/lib/checklist";
+import type { SubmitPayload } from "@/lib/types";
 
 function isValidPayload(body: unknown): body is SubmitPayload {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
   if (typeof b.employeeName !== "string" || !b.employeeName.trim()) return false;
-  if (typeof b.stage !== "string" || !STAGES.includes(b.stage as FailureStage))
-    return false;
   if (!Array.isArray(b.checkedItemIds)) return false;
   if (!b.checkedItemIds.every((id) => typeof id === "string")) return false;
   if (typeof b.notes !== "string") return false;
@@ -44,14 +40,12 @@ export async function POST(request: Request) {
 
   if (!isValidPayload(body)) {
     return NextResponse.json(
-      { error: "Please fill in employee name and select a stage." },
+      { error: "Please fill in employee name." },
       { status: 400 },
     );
   }
 
   const employeeName = body.employeeName.trim();
-  const stage = body.stage;
-  const stageLabel = STAGE_LABELS[stage];
   const siteLocation = body.siteLocation?.trim() || "Not provided";
   const notes = body.notes.trim() || "None";
   const itemNotes = body.itemNotes ?? {};
@@ -77,13 +71,12 @@ export async function POST(request: Request) {
     process.env.RESEND_FROM_EMAIL ??
     "AI Robotics Checklist <onboarding@resend.dev>";
 
-  const subject = `[Failure ${stageLabel}] ${employeeName} — ${siteLocation}`;
+  const subject = `[Site Visit Checklist] ${employeeName} — ${siteLocation}`;
 
   const text = [
-    "AI Robotics — Failure Safety Report",
+    "AI Robotics — Site Visit Safety Report",
     "",
     `Employee: ${employeeName}`,
-    `Stage: ${stageLabel}`,
     `Site / location: ${siteLocation}`,
     `Submitted (UAE): ${submittedAt}`,
     "",
@@ -96,9 +89,8 @@ export async function POST(request: Request) {
 
   const html = `
     <div style="font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#1a1a1a">
-      <h1 style="font-size:18px;margin:0 0 12px">AI Robotics — Failure Safety Report</h1>
+      <h1 style="font-size:18px;margin:0 0 12px">AI Robotics — Site Visit Safety Report</h1>
       <p style="margin:0 0 8px"><strong>Employee:</strong> ${escapeHtml(employeeName)}</p>
-      <p style="margin:0 0 8px"><strong>Stage:</strong> ${escapeHtml(stageLabel)}</p>
       <p style="margin:0 0 8px"><strong>Site / location:</strong> ${escapeHtml(siteLocation)}</p>
       <p style="margin:0 0 16px"><strong>Submitted (UAE):</strong> ${escapeHtml(submittedAt)}</p>
       <h2 style="font-size:15px;margin:0 0 8px">Safety checklist</h2>
@@ -119,7 +111,7 @@ export async function POST(request: Request) {
       text,
       html,
     },
-    { idempotencyKey: `failure-report/${employeeName}/${stage}/${Date.now()}` },
+    { idempotencyKey: `site-visit/${employeeName}/${Date.now()}` },
   );
 
   if (error) {

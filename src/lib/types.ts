@@ -1,5 +1,3 @@
-export type FailureStage = "before" | "during" | "end";
-
 export type ChecklistItem = {
   id: string;
   label: string;
@@ -13,7 +11,6 @@ export type ChecklistGroup = {
 
 export type SubmitPayload = {
   employeeName: string;
-  stage: FailureStage;
   checkedItemIds: string[];
   itemNotes: Record<string, string>;
   notes: string;

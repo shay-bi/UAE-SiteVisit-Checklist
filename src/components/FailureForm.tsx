@@ -1,31 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { SAFETY_CHECKLIST, STAGE_LABELS } from "@/lib/checklist";
-import type { FailureStage } from "@/lib/types";
-
-const STAGES: FailureStage[] = ["before", "during", "end"];
+import { useState } from "react";
+import { SAFETY_CHECKLIST } from "@/lib/checklist";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
 export function FailureForm() {
   const [employeeName, setEmployeeName] = useState("");
   const [siteLocation, setSiteLocation] = useState("");
-  const [stage, setStage] = useState<FailureStage>("before");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [itemNotes, setItemNotes] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const groups = useMemo(() => SAFETY_CHECKLIST[stage], [stage]);
-
   function toggleItem(id: string) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
-  }
-
-  function handleStageChange(next: FailureStage) {
-    setStage(next);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -50,7 +40,6 @@ export function FailureForm() {
         body: JSON.stringify({
           employeeName,
           siteLocation,
-          stage,
           checkedItemIds,
           itemNotes: relevantNotes,
           notes,
@@ -80,8 +69,7 @@ export function FailureForm() {
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
         <p className="text-lg font-semibold text-emerald-900">Report sent</p>
         <p className="mt-2 text-sm text-emerald-800">
-          Your {STAGE_LABELS[stage].toLowerCase()} checklist was emailed to
-          operations.
+          Your checklist was emailed to operations.
         </p>
         <button
           type="button"
@@ -124,31 +112,6 @@ export function FailureForm() {
         />
       </label>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-slate-700">
-          Report stage
-        </legend>
-        <div className="grid gap-2">
-          {STAGES.map((s) => {
-            const selected = stage === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => handleStageChange(s)}
-                className={`min-h-12 rounded-xl border px-4 text-left text-base font-medium transition-colors ${
-                  selected
-                    ? "border-sky-700 bg-sky-700 text-white"
-                    : "border-slate-300 bg-white text-slate-800 active:bg-slate-50"
-                }`}
-              >
-                {STAGE_LABELS[s]}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
-
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-base font-semibold text-slate-900">
@@ -159,7 +122,7 @@ export function FailureForm() {
           </p>
         </div>
 
-        {groups.map((group) => (
+        {SAFETY_CHECKLIST.map((group) => (
           <section
             key={group.id}
             className="rounded-2xl border border-slate-200 bg-white p-4"

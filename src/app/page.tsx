@@ -8,11 +8,11 @@ export default function Home() {
           AI Robotics
         </p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-          Failure Safety Checklist
+          Site Visit Checklist
         </h1>
         <p className="mt-2 text-base leading-relaxed text-slate-600">
-          Fill this form before, during, and at the end of each failure visit.
-          Your report is emailed to operations.
+          Complete this safety checklist once per site visit. Your report is
+          emailed to operations.
         </p>
       </header>
 
