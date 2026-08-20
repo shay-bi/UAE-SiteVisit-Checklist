@@ -1,6 +1,6 @@
 # UAE Site Visit / Failure Safety Checklist
 
-Mobile-friendly form for AI Robotics employees to submit a safety checklist once per site visit. Each submission is emailed to operations via Resend.
+Mobile-friendly form for Airobotics employees to submit a safety checklist once per site visit. Each submission is emailed to operations via Resend.
 
 ## Setup
 

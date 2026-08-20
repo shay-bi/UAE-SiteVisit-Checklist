@@ -5,6 +5,9 @@ import { SAFETY_CHECKLIST } from "@/lib/checklist";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
+const fieldClass =
+  "min-h-12 rounded-lg border border-border bg-surface-elevated px-4 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2";
+
 export function FailureForm() {
   const [employeeName, setEmployeeName] = useState("");
   const [siteLocation, setSiteLocation] = useState("");
@@ -66,14 +69,14 @@ export function FailureForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center">
-        <p className="text-lg font-semibold text-emerald-900">Report sent</p>
-        <p className="mt-2 text-sm text-emerald-800">
+      <div className="rounded-xl border border-brand-orange/40 bg-surface p-6 text-center">
+        <p className="text-lg font-semibold text-white">Report sent</p>
+        <p className="mt-2 text-sm text-muted">
           Your checklist was emailed to operations.
         </p>
         <button
           type="button"
-          className="mt-6 w-full rounded-xl bg-emerald-800 px-4 py-3.5 text-base font-medium text-white active:bg-emerald-900"
+          className="mt-6 w-full rounded-lg bg-brand-orange px-4 py-3.5 text-base font-semibold text-white active:bg-brand-orange-hover"
           onClick={() => setStatus("idle")}
         >
           Submit another report
@@ -85,9 +88,7 @@ export function FailureForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-slate-700">
-          Employee name
-        </span>
+        <span className="text-sm font-medium text-muted">Employee name</span>
         <input
           required
           name="employeeName"
@@ -95,29 +96,27 @@ export function FailureForm() {
           value={employeeName}
           onChange={(e) => setEmployeeName(e.target.value)}
           placeholder="Your full name"
-          className="min-h-12 rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 outline-none ring-sky-600 focus:ring-2"
+          className={fieldClass}
         />
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-slate-700">
-          Site / location
-        </span>
+        <span className="text-sm font-medium text-muted">Site / location</span>
         <input
           name="siteLocation"
           value={siteLocation}
           onChange={(e) => setSiteLocation(e.target.value)}
           placeholder="e.g. site name or address"
-          className="min-h-12 rounded-xl border border-slate-300 bg-white px-4 text-base text-slate-900 outline-none ring-sky-600 focus:ring-2"
+          className={fieldClass}
         />
       </label>
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">
+          <h2 className="text-base font-semibold text-white">
             Safety mechanisms
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted">
             Placeholder items — we will replace these with your real checklist.
           </p>
         </div>
@@ -125,9 +124,9 @@ export function FailureForm() {
         {SAFETY_CHECKLIST.map((group) => (
           <section
             key={group.id}
-            className="rounded-2xl border border-slate-200 bg-white p-4"
+            className="rounded-xl border border-border bg-surface p-4"
           >
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-orange">
               {group.title}
             </h3>
             <ul className="mt-3 flex flex-col gap-3">
@@ -140,9 +139,9 @@ export function FailureForm() {
                         type="checkbox"
                         checked={on}
                         onChange={() => toggleItem(item.id)}
-                        className="mt-1 size-5 shrink-0 rounded border-slate-400 accent-sky-700"
+                        className="mt-1 size-5 shrink-0 rounded border-border accent-[var(--brand-orange)]"
                       />
-                      <span className="text-base leading-snug text-slate-800">
+                      <span className="text-base leading-snug text-foreground">
                         {item.label}
                       </span>
                     </label>
@@ -157,7 +156,7 @@ export function FailureForm() {
                           }))
                         }
                         placeholder="Optional note for this item"
-                        className="ml-8 min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm outline-none ring-sky-600 focus:ring-2"
+                        className="ml-8 min-h-11 rounded-lg border border-border bg-surface-elevated px-3 text-sm text-white outline-none ring-brand-orange focus:ring-2"
                       />
                     )}
                   </li>
@@ -169,23 +168,21 @@ export function FailureForm() {
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-slate-700">
-          Additional notes
-        </span>
+        <span className="text-sm font-medium text-muted">Additional notes</span>
         <textarea
           name="notes"
           rows={4}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Anything else operations should know…"
-          className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none ring-sky-600 focus:ring-2"
+          className="rounded-lg border border-border bg-surface-elevated px-4 py-3 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2"
         />
       </label>
 
       {status === "error" && (
         <p
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="rounded-lg border border-red-500/40 bg-red-950/50 px-4 py-3 text-sm text-red-200"
         >
           {errorMessage}
         </p>
@@ -194,7 +191,7 @@ export function FailureForm() {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="sticky bottom-4 min-h-14 w-full rounded-xl bg-slate-900 px-4 text-base font-semibold text-white shadow-lg shadow-slate-900/20 disabled:opacity-60 active:bg-slate-800"
+        className="sticky bottom-4 min-h-14 w-full rounded-lg bg-brand-orange px-4 text-base font-semibold text-white shadow-lg shadow-brand-orange/25 disabled:opacity-60 active:brightness-110"
       >
         {status === "submitting" ? "Sending…" : "Submit report"}
       </button>

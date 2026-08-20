@@ -1,22 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const outfit = Outfit({
+  variable: "--font-brand",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Site Visit Checklist | AI Robotics",
+  title: "Site Visit Checklist | Airobotics",
   description:
-    "Mobile safety checklist for AI Robotics employees on site visits.",
+    "Mobile safety checklist for Airobotics employees on site visits.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0c4a6e",
+  themeColor: "#121214",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} h-full antialiased`}>
+    <html lang="en" className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">{children}</body>
     </html>
   );

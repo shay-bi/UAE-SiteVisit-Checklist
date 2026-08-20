@@ -69,12 +69,12 @@ export async function POST(request: Request) {
     process.env.REPORT_TO_EMAIL ?? "shaybit@airoboticsdrones.com";
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ??
-    "AI Robotics Checklist <onboarding@resend.dev>";
+    "Airobotics Checklist <onboarding@resend.dev>";
 
   const subject = `[Site Visit Checklist] ${employeeName} — ${siteLocation}`;
 
   const text = [
-    "AI Robotics — Site Visit Safety Report",
+    "Airobotics — Site Visit Safety Report",
     "",
     `Employee: ${employeeName}`,
     `Site / location: ${siteLocation}`,
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 
   const html = `
     <div style="font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#1a1a1a">
-      <h1 style="font-size:18px;margin:0 0 12px">AI Robotics — Site Visit Safety Report</h1>
+      <h1 style="font-size:18px;margin:0 0 12px">Airobotics — Site Visit Safety Report</h1>
       <p style="margin:0 0 8px"><strong>Employee:</strong> ${escapeHtml(employeeName)}</p>
       <p style="margin:0 0 8px"><strong>Site / location:</strong> ${escapeHtml(siteLocation)}</p>
       <p style="margin:0 0 16px"><strong>Submitted (UAE):</strong> ${escapeHtml(submittedAt)}</p>
