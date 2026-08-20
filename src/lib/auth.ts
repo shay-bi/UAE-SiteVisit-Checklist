@@ -4,7 +4,19 @@ export type StoredUser = {
 };
 
 export const WORK_EMAIL_DOMAIN = "airoboticsdrones.com";
+
+/** Shown in the UI for the Admin panel button (API still requires admin password). */
+export const ADMIN_UI_EMAIL = (
+  process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "shaybit@airoboticsdrones.com"
+)
+  .trim()
+  .toLowerCase();
+
 const STORAGE_KEY = "airobotics-site-visit-user";
+
+export function isAdminUser(user: StoredUser): boolean {
+  return user.email.trim().toLowerCase() === ADMIN_UI_EMAIL;
+}
 
 export function isWorkEmail(email: string): boolean {
   const normalized = email.trim().toLowerCase();

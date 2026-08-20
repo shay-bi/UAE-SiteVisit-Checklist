@@ -1,7 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { clearUser, loadUser, type StoredUser } from "@/lib/auth";
+import {
+  clearUser,
+  isAdminUser,
+  loadUser,
+  type StoredUser,
+} from "@/lib/auth";
 import { FailureForm } from "@/components/FailureForm";
 import { SignInForm } from "@/components/SignInForm";
 
@@ -26,6 +32,8 @@ export function SiteVisitApp() {
     return <SignInForm onSignedIn={setUser} />;
   }
 
+  const showAdminButton = isAdminUser(user);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
@@ -44,6 +52,16 @@ export function SiteVisitApp() {
           Switch user
         </button>
       </div>
+
+      {showAdminButton && (
+        <Link
+          href="/admin"
+          className="flex min-h-12 items-center justify-center rounded-lg border border-brand-orange bg-brand-orange/15 px-4 text-sm font-semibold text-brand-orange"
+        >
+          Admin panel
+        </Link>
+      )}
+
       <FailureForm user={user} />
     </div>
   );

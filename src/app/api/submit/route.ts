@@ -1,7 +1,9 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { isWorkEmail } from "@/lib/auth";
 import { allChecklistItemIds, findItemLabel } from "@/lib/checklist";
+import { saveReport } from "@/lib/reports-store";
 import type { SubmitPayload } from "@/lib/types";
 
 function isValidPayload(body: unknown): body is SubmitPayload {
@@ -131,6 +133,19 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
+
+  const checkedItemIds = allChecklistItemIds();
+  await saveReport({
+    id: randomUUID(),
+    employeeName,
+    employeeEmail,
+    siteLocation,
+    checkedItemIds,
+    checkedLabels: checkedItemIds.map((id) => findItemLabel(id)),
+    notes,
+    submittedAtIso: new Date().toISOString(),
+    submittedAtUae: submittedAt,
+  });
 
   return NextResponse.json({ ok: true, id: data?.id });
 }

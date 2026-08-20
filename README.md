@@ -41,6 +41,16 @@ Employees sign in once with their name and `@airoboticsdrones.com` email. The ap
 
 Site location, every safety checklist item, and additional notes are required. Any new items added in [`src/lib/checklist.ts`](src/lib/checklist.ts) are also required automatically.
 
+## Admin panel
+
+Open [http://localhost:3000/admin](http://localhost:3000/admin).
+
+Only `shaybit@airoboticsdrones.com` can sign in (set via `ADMIN_EMAIL`). Use the password from `ADMIN_PASSWORD` in `.env.local`.
+
+Submitted reports are saved locally in `data/reports.json` (gitignored) and listed in the admin panel. Email delivery still goes to Outlook as before.
+
 ## Deploy
 
-Deploy to Vercel and add the same environment variables in the project settings.
+Deploy to Vercel and add the same environment variables in the project settings (`RESEND_API_KEY`, `REPORT_TO_EMAIL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`).
+
+Note: the file-based report store works best on a single server / local machine. For multi-instance Vercel hosting, we should later move reports to a database.
