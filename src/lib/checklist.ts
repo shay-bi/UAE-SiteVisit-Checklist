@@ -43,3 +43,8 @@ export function findItemLabel(itemId: string): string {
   }
   return itemId;
 }
+
+/** Every checklist item id — any item added here is required on submit. */
+export function allChecklistItemIds(): string[] {
+  return SAFETY_CHECKLIST.flatMap((group) => group.items.map((item) => item.id));
+}

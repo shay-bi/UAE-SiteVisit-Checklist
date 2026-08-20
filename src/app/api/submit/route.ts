@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { findItemLabel } from "@/lib/checklist";
+import { isWorkEmail } from "@/lib/auth";
+import { allChecklistItemIds, findItemLabel } from "@/lib/checklist";
 import type { SubmitPayload } from "@/lib/types";
 
 function isValidPayload(body: unknown): body is SubmitPayload {
   if (!body || typeof body !== "object") return false;
   const b = body as Record<string, unknown>;
   if (typeof b.employeeName !== "string" || !b.employeeName.trim()) return false;
+  if (typeof b.employeeEmail !== "string" || !isWorkEmail(b.employeeEmail))
+    return false;
+  if (typeof b.siteLocation !== "string" || !b.siteLocation.trim()) return false;
+  if (typeof b.notes !== "string" || !b.notes.trim()) return false;
   if (!Array.isArray(b.checkedItemIds)) return false;
   if (!b.checkedItemIds.every((id) => typeof id === "string")) return false;
-  if (typeof b.notes !== "string") return false;
-  if (b.itemNotes !== undefined && typeof b.itemNotes !== "object") return false;
+
+  const requiredIds = allChecklistItemIds();
+  const checked = new Set(b.checkedItemIds as string[]);
+  if (requiredIds.length === 0 || requiredIds.some((id) => !checked.has(id))) {
+    return false;
+  }
+
   return true;
 }
 
@@ -40,30 +50,27 @@ export async function POST(request: Request) {
 
   if (!isValidPayload(body)) {
     return NextResponse.json(
-      { error: "Please fill in employee name." },
+      {
+        error:
+          "Please complete all required fields, including every safety item, using a @airoboticsdrones.com email.",
+      },
       { status: 400 },
     );
   }
 
   const employeeName = body.employeeName.trim();
-  const siteLocation = body.siteLocation?.trim() || "Not provided";
-  const notes = body.notes.trim() || "None";
-  const itemNotes = body.itemNotes ?? {};
+  const employeeEmail = body.employeeEmail.trim().toLowerCase();
+  const siteLocation = body.siteLocation.trim();
+  const notes = body.notes.trim();
   const submittedAt = new Date().toLocaleString("en-GB", {
     timeZone: "Asia/Dubai",
     dateStyle: "full",
     timeStyle: "short",
   });
 
-  const checkedLines =
-    body.checkedItemIds.length > 0
-      ? body.checkedItemIds.map((id) => {
-          const note = itemNotes[id]?.trim();
-          return note
-            ? `✓ ${findItemLabel(id)} — Note: ${note}`
-            : `✓ ${findItemLabel(id)}`;
-        })
-      : ["(No checklist items selected)"];
+  const checkedLines = allChecklistItemIds().map(
+    (id) => `✓ ${findItemLabel(id)}`,
+  );
 
   const toEmail =
     process.env.REPORT_TO_EMAIL ?? "shaybit@airoboticsdrones.com";
@@ -77,6 +84,7 @@ export async function POST(request: Request) {
     "Airobotics — Site Visit Safety Report",
     "",
     `Employee: ${employeeName}`,
+    `Email: ${employeeEmail}`,
     `Site / location: ${siteLocation}`,
     `Submitted (UAE): ${submittedAt}`,
     "",
@@ -91,6 +99,7 @@ export async function POST(request: Request) {
     <div style="font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#1a1a1a">
       <h1 style="font-size:18px;margin:0 0 12px">Airobotics — Site Visit Safety Report</h1>
       <p style="margin:0 0 8px"><strong>Employee:</strong> ${escapeHtml(employeeName)}</p>
+      <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(employeeEmail)}</p>
       <p style="margin:0 0 8px"><strong>Site / location:</strong> ${escapeHtml(siteLocation)}</p>
       <p style="margin:0 0 16px"><strong>Submitted (UAE):</strong> ${escapeHtml(submittedAt)}</p>
       <h2 style="font-size:15px;margin:0 0 8px">Safety checklist</h2>
@@ -107,11 +116,12 @@ export async function POST(request: Request) {
     {
       from: fromEmail,
       to: [toEmail],
+      replyTo: employeeEmail,
       subject,
       text,
       html,
     },
-    { idempotencyKey: `site-visit/${employeeName}/${Date.now()}` },
+    { idempotencyKey: `site-visit/${employeeEmail}/${Date.now()}` },
   );
 
   if (error) {

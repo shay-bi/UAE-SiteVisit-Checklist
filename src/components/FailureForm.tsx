@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { SAFETY_CHECKLIST } from "@/lib/checklist";
+import { useMemo, useState } from "react";
+import { SAFETY_CHECKLIST, allChecklistItemIds } from "@/lib/checklist";
+import type { StoredUser } from "@/lib/auth";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
 const fieldClass =
   "min-h-12 rounded-lg border border-border bg-surface-elevated px-4 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2";
 
-export function FailureForm() {
-  const [employeeName, setEmployeeName] = useState("");
+type FailureFormProps = {
+  user: StoredUser;
+};
+
+export function FailureForm({ user }: FailureFormProps) {
+  const requiredItemIds = useMemo(() => allChecklistItemIds(), []);
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [itemNotes, setItemNotes] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -21,31 +25,39 @@ export function FailureForm() {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
+  function validate(): string | null {
+    if (!siteLocation.trim()) return "Site / location is required.";
+    const missing = requiredItemIds.filter((id) => !checked[id]);
+    if (missing.length > 0) {
+      return "Please check every safety item before submitting.";
+    }
+    if (!notes.trim()) return "Additional notes are required.";
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
 
-    const checkedItemIds = Object.entries(checked)
-      .filter(([, on]) => on)
-      .map(([id]) => id);
-
-    const relevantNotes: Record<string, string> = {};
-    for (const id of checkedItemIds) {
-      const note = itemNotes[id]?.trim();
-      if (note) relevantNotes[id] = note;
+    const validationError = validate();
+    if (validationError) {
+      setStatus("error");
+      setErrorMessage(validationError);
+      return;
     }
+
+    setStatus("submitting");
 
     try {
       const res = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          employeeName,
-          siteLocation,
-          checkedItemIds,
-          itemNotes: relevantNotes,
-          notes,
+          employeeName: user.name,
+          employeeEmail: user.email,
+          siteLocation: siteLocation.trim(),
+          checkedItemIds: requiredItemIds,
+          notes: notes.trim(),
         }),
       });
 
@@ -58,8 +70,8 @@ export function FailureForm() {
       }
 
       setStatus("success");
+      setSiteLocation("");
       setChecked({});
-      setItemNotes({});
       setNotes("");
     } catch {
       setStatus("error");
@@ -86,23 +98,13 @@ export function FailureForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-muted">Employee name</span>
+        <span className="text-sm font-medium text-muted">
+          Site / location <span className="text-brand-orange">*</span>
+        </span>
         <input
           required
-          name="employeeName"
-          autoComplete="name"
-          value={employeeName}
-          onChange={(e) => setEmployeeName(e.target.value)}
-          placeholder="Your full name"
-          className={fieldClass}
-        />
-      </label>
-
-      <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-muted">Site / location</span>
-        <input
           name="siteLocation"
           value={siteLocation}
           onChange={(e) => setSiteLocation(e.target.value)}
@@ -114,10 +116,12 @@ export function FailureForm() {
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-base font-semibold text-white">
-            Safety mechanisms
+            Safety mechanisms{" "}
+            <span className="text-brand-orange">*</span>
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Placeholder items — we will replace these with your real checklist.
+            All items are required. New items you add later will also be
+            required.
           </p>
         </div>
 
@@ -133,10 +137,11 @@ export function FailureForm() {
               {group.items.map((item) => {
                 const on = Boolean(checked[item.id]);
                 return (
-                  <li key={item.id} className="flex flex-col gap-2">
+                  <li key={item.id}>
                     <label className="flex min-h-11 cursor-pointer items-start gap-3">
                       <input
                         type="checkbox"
+                        required
                         checked={on}
                         onChange={() => toggleItem(item.id)}
                         className="mt-1 size-5 shrink-0 rounded border-border accent-[var(--brand-orange)]"
@@ -145,20 +150,6 @@ export function FailureForm() {
                         {item.label}
                       </span>
                     </label>
-                    {on && (
-                      <input
-                        type="text"
-                        value={itemNotes[item.id] ?? ""}
-                        onChange={(e) =>
-                          setItemNotes((prev) => ({
-                            ...prev,
-                            [item.id]: e.target.value,
-                          }))
-                        }
-                        placeholder="Optional note for this item"
-                        className="ml-8 min-h-11 rounded-lg border border-border bg-surface-elevated px-3 text-sm text-white outline-none ring-brand-orange focus:ring-2"
-                      />
-                    )}
                   </li>
                 );
               })}
@@ -168,8 +159,11 @@ export function FailureForm() {
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-muted">Additional notes</span>
+        <span className="text-sm font-medium text-muted">
+          Additional notes <span className="text-brand-orange">*</span>
+        </span>
         <textarea
+          required
           name="notes"
           rows={4}
           value={notes}

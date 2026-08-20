@@ -33,9 +33,13 @@ Open [http://localhost:3000](http://localhost:3000) on your phone (same Wi‑Fi)
 - Without a verified domain, Resend sends from `onboarding@resend.dev`. That works for MVP when the recipient matches your Resend account email.
 - Later, verify `airoboticsdrones.com` in Resend and set `RESEND_FROM_EMAIL`.
 
-## Customizing the checklist
+## Sign-in
 
-Edit placeholder Safety items in [`src/lib/checklist.ts`](src/lib/checklist.ts). Keep stable `id` values when possible.
+Employees sign in once with their name and `@airoboticsdrones.com` email. The app stores that on the device (localStorage) so they stay signed in. Use **Switch user** to change accounts on a shared phone.
+
+## Required fields
+
+Site location, every safety checklist item, and additional notes are required. Any new items added in [`src/lib/checklist.ts`](src/lib/checklist.ts) are also required automatically.
 
 ## Deploy
 

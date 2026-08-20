@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FailureForm } from "@/components/FailureForm";
+import { SiteVisitApp } from "@/components/SiteVisitApp";
 
 export default function Home() {
   return (
@@ -39,7 +39,7 @@ export default function Home() {
         </header>
 
         <main className="flex-1">
-          <FailureForm />
+          <SiteVisitApp />
         </main>
       </div>
     </div>

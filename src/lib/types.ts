@@ -11,8 +11,8 @@ export type ChecklistGroup = {
 
 export type SubmitPayload = {
   employeeName: string;
+  employeeEmail: string;
+  siteLocation: string;
   checkedItemIds: string[];
-  itemNotes: Record<string, string>;
   notes: string;
-  siteLocation?: string;
 };
