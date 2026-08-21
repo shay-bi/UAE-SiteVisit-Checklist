@@ -3,30 +3,16 @@ import { AdminPanel } from "@/components/AdminPanel";
 
 export default function AdminPage() {
   return (
-    <div className="relative min-h-full overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-48 opacity-30"
-      >
-        <Image
-          src="/brand/airobotics-equipment.png"
-          alt=""
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/85 to-background" />
-      </div>
-
+    <div className="relative min-h-full overflow-hidden bg-background">
       <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-10 pt-8 sm:px-6">
         <header className="mb-8 flex flex-col items-center text-center">
           <Image
-            src="/brand/airobotics-logo.png"
-            alt="Airobotics"
-            width={180}
-            height={180}
+            src="/brand/airobotics-dubai-logo.png"
+            alt="Airobotics Dubai"
+            width={400}
+            height={133}
             priority
-            className="h-auto w-36"
+            className="h-auto w-full max-w-xs"
           />
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-white">
             Admin panel

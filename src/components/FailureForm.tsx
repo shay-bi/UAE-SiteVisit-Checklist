@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SAFETY_CHECKLIST, allChecklistItemIds } from "@/lib/checklist";
+import {
+  SAFETY_CHECKLIST,
+  requiredChecklistItemIds,
+} from "@/lib/checklist";
 import type { StoredUser } from "@/lib/auth";
 
 type Status = "idle" | "submitting" | "success" | "error";
@@ -14,7 +17,7 @@ type FailureFormProps = {
 };
 
 export function FailureForm({ user }: FailureFormProps) {
-  const requiredItemIds = useMemo(() => allChecklistItemIds(), []);
+  const requiredItemIds = useMemo(() => requiredChecklistItemIds(), []);
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState("");
@@ -26,10 +29,10 @@ export function FailureForm({ user }: FailureFormProps) {
   }
 
   function validate(): string | null {
-    if (!siteLocation.trim()) return "Site / location is required.";
+    if (!siteLocation.trim()) return "Site + Failure is required.";
     const missing = requiredItemIds.filter((id) => !checked[id]);
     if (missing.length > 0) {
-      return "Please check every safety item before submitting.";
+      return "Please complete all required checklist items.";
     }
     if (!notes.trim()) return "Additional notes are required.";
     return null;
@@ -48,6 +51,13 @@ export function FailureForm({ user }: FailureFormProps) {
 
     setStatus("submitting");
 
+    const checkedItemIds = [
+      ...requiredItemIds,
+      ...SAFETY_CHECKLIST.filter((g) => g.optional)
+        .flatMap((g) => g.items.map((i) => i.id))
+        .filter((id) => checked[id]),
+    ];
+
     try {
       const res = await fetch("/api/submit", {
         method: "POST",
@@ -56,7 +66,7 @@ export function FailureForm({ user }: FailureFormProps) {
           employeeName: user.name,
           employeeEmail: user.email,
           siteLocation: siteLocation.trim(),
-          checkedItemIds: requiredItemIds,
+          checkedItemIds,
           notes: notes.trim(),
         }),
       });
@@ -101,14 +111,14 @@ export function FailureForm({ user }: FailureFormProps) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <label className="flex flex-col gap-2">
         <span className="text-sm font-medium text-muted">
-          Site / location <span className="text-brand-orange">*</span>
+          Site + Failure <span className="text-brand-orange">*</span>
         </span>
         <input
           required
           name="siteLocation"
           value={siteLocation}
           onChange={(e) => setSiteLocation(e.target.value)}
-          placeholder="e.g. site name or address"
+          placeholder="e.g. site name + failure details"
           className={fieldClass}
         />
       </label>
@@ -116,46 +126,65 @@ export function FailureForm({ user }: FailureFormProps) {
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-base font-semibold text-white">
-            Safety mechanisms{" "}
-            <span className="text-brand-orange">*</span>
+            Safety checklist <span className="text-brand-orange">*</span>
           </h2>
-          <p className="mt-1 text-sm text-muted">
-            All items are required. New items you add later will also be
-            required.
-          </p>
         </div>
 
-        {SAFETY_CHECKLIST.map((group) => (
-          <section
-            key={group.id}
-            className="rounded-xl border border-border bg-surface p-4"
-          >
-            <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-orange">
-              {group.title}
-            </h3>
-            <ul className="mt-3 flex flex-col gap-3">
-              {group.items.map((item) => {
-                const on = Boolean(checked[item.id]);
-                return (
-                  <li key={item.id}>
-                    <label className="flex min-h-11 cursor-pointer items-start gap-3">
-                      <input
-                        type="checkbox"
-                        required
-                        checked={on}
-                        onChange={() => toggleItem(item.id)}
-                        className="mt-1 size-5 shrink-0 rounded border-border accent-[var(--brand-orange)]"
-                      />
-                      <span className="text-base leading-snug text-foreground">
-                        {item.label}
-                      </span>
-                    </label>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ))}
+        {SAFETY_CHECKLIST.map((group) => {
+          const isDanger = group.variant === "danger";
+          return (
+            <section
+              key={group.id}
+              className={
+                isDanger
+                  ? "rounded-xl border-2 border-red-500/70 bg-red-950/40 p-4 shadow-[0_0_0_1px_rgba(239,68,68,0.25)]"
+                  : "rounded-xl border border-border bg-surface p-4"
+              }
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <h3
+                  className={
+                    isDanger
+                      ? "text-xs font-semibold uppercase tracking-[0.12em] text-red-400"
+                      : "text-xs font-semibold uppercase tracking-[0.12em] text-brand-orange"
+                  }
+                >
+                  {group.title}
+                </h3>
+                {group.optional && (
+                  <span className="rounded bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-300">
+                    Only if flight needed
+                  </span>
+                )}
+              </div>
+              <ul className="mt-3 flex flex-col gap-3">
+                {group.items.map((item) => {
+                  const on = Boolean(checked[item.id]);
+                  return (
+                    <li key={item.id}>
+                      <label className="flex min-h-11 cursor-pointer items-start gap-3">
+                        <input
+                          type="checkbox"
+                          required={!group.optional}
+                          checked={on}
+                          onChange={() => toggleItem(item.id)}
+                          className={
+                            isDanger
+                              ? "mt-1 size-5 shrink-0 rounded border-red-400 accent-red-500"
+                              : "mt-1 size-5 shrink-0 rounded border-border accent-[var(--brand-orange)]"
+                          }
+                        />
+                        <span className="text-base leading-snug text-foreground">
+                          {item.label}
+                        </span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
       </div>
 
       <label className="flex flex-col gap-2">

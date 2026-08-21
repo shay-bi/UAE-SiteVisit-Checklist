@@ -2,7 +2,10 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { isWorkEmail } from "@/lib/auth";
-import { allChecklistItemIds, findItemLabel } from "@/lib/checklist";
+import {
+  findItemLabel,
+  requiredChecklistItemIds,
+} from "@/lib/checklist";
 import { saveReport } from "@/lib/reports-store";
 import type { SubmitPayload } from "@/lib/types";
 
@@ -17,7 +20,7 @@ function isValidPayload(body: unknown): body is SubmitPayload {
   if (!Array.isArray(b.checkedItemIds)) return false;
   if (!b.checkedItemIds.every((id) => typeof id === "string")) return false;
 
-  const requiredIds = allChecklistItemIds();
+  const requiredIds = requiredChecklistItemIds();
   const checked = new Set(b.checkedItemIds as string[]);
   if (requiredIds.length === 0 || requiredIds.some((id) => !checked.has(id))) {
     return false;
@@ -70,7 +73,7 @@ export async function POST(request: Request) {
     timeStyle: "short",
   });
 
-  const checkedLines = allChecklistItemIds().map(
+  const checkedLines = body.checkedItemIds.map(
     (id) => `✓ ${findItemLabel(id)}`,
   );
 
@@ -87,7 +90,7 @@ export async function POST(request: Request) {
     "",
     `Employee: ${employeeName}`,
     `Email: ${employeeEmail}`,
-    `Site / location: ${siteLocation}`,
+    `Site + Failure: ${siteLocation}`,
     `Submitted (UAE): ${submittedAt}`,
     "",
     "Safety checklist:",
@@ -102,7 +105,7 @@ export async function POST(request: Request) {
       <h1 style="font-size:18px;margin:0 0 12px">Airobotics — Site Visit Safety Report</h1>
       <p style="margin:0 0 8px"><strong>Employee:</strong> ${escapeHtml(employeeName)}</p>
       <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(employeeEmail)}</p>
-      <p style="margin:0 0 8px"><strong>Site / location:</strong> ${escapeHtml(siteLocation)}</p>
+      <p style="margin:0 0 8px"><strong>Site + Failure:</strong> ${escapeHtml(siteLocation)}</p>
       <p style="margin:0 0 16px"><strong>Submitted (UAE):</strong> ${escapeHtml(submittedAt)}</p>
       <h2 style="font-size:15px;margin:0 0 8px">Safety checklist</h2>
       <ul style="margin:0 0 16px;padding-left:20px">
@@ -134,7 +137,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const checkedItemIds = allChecklistItemIds();
+  const checkedItemIds = body.checkedItemIds;
   await saveReport({
     id: randomUUID(),
     employeeName,

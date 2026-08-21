@@ -1,37 +1,59 @@
 import type { ChecklistGroup } from "./types";
 
 /**
- * Placeholder Safety mechanisms — replace with your real checklist items.
- * Keep the same shape: groups → items with stable `id` values.
+ * Site visit safety checklist.
+ * Optional groups (e.g. Flight) are only filled when relevant.
  */
 export const SAFETY_CHECKLIST: ChecklistGroup[] = [
   {
-    id: "ppe",
-    title: "PPE & readiness (placeholder)",
+    id: "readiness",
+    title: "Readiness",
     items: [
-      { id: "ppe-1", label: "Required PPE available and worn" },
-      { id: "ppe-2", label: "Tools and spare parts prepared" },
-      { id: "ppe-3", label: "Site access / permits confirmed" },
+      {
+        id: "readiness-1",
+        label:
+          "Client and investigators informed; all needed equipment is available",
+      },
     ],
   },
   {
-    id: "site-safety",
-    title: "Site safety (placeholder)",
+    id: "in-site",
+    title: "In site",
     items: [
-      { id: "site-1", label: "Work area secured / marked" },
-      { id: "site-2", label: "Power / energy isolation verified" },
-      { id: "site-3", label: "Bystanders kept clear" },
-      { id: "site-4", label: "Following approved work procedure" },
+      {
+        id: "in-site-1",
+        label: "Client informed: maintenance started, expected duration, and procedure",
+      },
+      {
+        id: "in-site-2",
+        label: "Investigators informed and updated during the work",
+      },
+    ],
+  },
+  {
+    id: "flight",
+    title: "Flight (if required)",
+    optional: true,
+    variant: "danger",
+    items: [
+      {
+        id: "flight-1",
+        label: 'Read the "Flight Report" before any flight',
+      },
+      {
+        id: "flight-2",
+        label: "Got investigator approval to start the flight",
+      },
     ],
   },
   {
     id: "closeout",
-    title: "Close-out (placeholder)",
+    title: "Close-out",
     items: [
-      { id: "close-1", label: "Equipment restored to safe state" },
-      { id: "close-2", label: "Area cleaned and hazards removed" },
-      { id: "close-3", label: "Customer / ops briefed on outcome" },
-      { id: "close-4", label: "Failure cause and follow-ups documented" },
+      { id: "close-1", label: "Station in RedCon and ready for operation" },
+      { id: "close-2", label: "All work tools returned" },
+      { id: "close-3", label: "Investigators informed" },
+      { id: "close-4", label: "Station returned to the client" },
     ],
   },
 ];
@@ -44,7 +66,14 @@ export function findItemLabel(itemId: string): string {
   return itemId;
 }
 
-/** Every checklist item id — any item added here is required on submit. */
+/** Required checklist item ids (skips optional groups like Flight). */
+export function requiredChecklistItemIds(): string[] {
+  return SAFETY_CHECKLIST.filter((group) => !group.optional).flatMap((group) =>
+    group.items.map((item) => item.id),
+  );
+}
+
+/** @deprecated use requiredChecklistItemIds */
 export function allChecklistItemIds(): string[] {
-  return SAFETY_CHECKLIST.flatMap((group) => group.items.map((item) => item.id));
+  return requiredChecklistItemIds();
 }

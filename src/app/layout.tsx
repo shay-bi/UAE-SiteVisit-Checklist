@@ -8,9 +8,13 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Site Visit Checklist | Airobotics",
+  title: "Site Visit Checklist | Airobotics Dubai",
   description:
-    "Mobile safety checklist for Airobotics employees on site visits.",
+    "Mobile safety checklist for Airobotics Dubai employees on site visits.",
+  icons: {
+    icon: [{ url: "/favicon.ico" }, { url: "/icon.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png" }],
+  },
 };
 
 export const viewport: Viewport = {

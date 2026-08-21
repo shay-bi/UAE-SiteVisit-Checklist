@@ -3,30 +3,16 @@ import { SiteVisitApp } from "@/components/SiteVisitApp";
 
 export default function Home() {
   return (
-    <div className="relative min-h-full overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-40"
-      >
-        <Image
-          src="/brand/airobotics-equipment.png"
-          alt=""
-          fill
-          priority
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/85 to-background" />
-      </div>
-
+    <div className="relative min-h-full overflow-hidden bg-background">
       <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-10 pt-8 sm:px-6">
         <header className="mb-8 flex flex-col items-center text-center">
           <Image
-            src="/brand/airobotics-logo.png"
-            alt="Airobotics"
-            width={220}
-            height={220}
+            src="/brand/airobotics-dubai-logo.png"
+            alt="Airobotics Dubai"
+            width={480}
+            height={160}
             priority
-            className="h-auto w-44 sm:w-52"
+            className="h-auto w-full max-w-sm"
           />
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
             Site Visit Checklist
