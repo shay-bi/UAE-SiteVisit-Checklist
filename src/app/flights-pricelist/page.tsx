@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PdfViewer } from "@/components/PdfViewer";
 
 export const metadata: Metadata = {
   title: "Flights Pricelist | Airobotics Dubai",
@@ -36,13 +37,10 @@ export default function FlightsPricelistPage() {
         </div>
       </header>
 
-      <div className="min-h-[70vh] flex-1 overflow-hidden rounded-xl border border-border bg-surface">
-        <iframe
-          title="Flights Pricelist PDF"
-          src="/docs/flights-pricelist.pdf#view=FitH"
-          className="h-[75vh] w-full border-0 bg-white sm:h-[80vh]"
-        />
-      </div>
+      <PdfViewer
+        src="/docs/flights-pricelist.pdf"
+        title="Flights Pricelist PDF"
+      />
     </div>
   );
 }

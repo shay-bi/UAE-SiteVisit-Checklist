@@ -227,8 +227,28 @@ export function FailureForm({ user }: FailureFormProps) {
 
   if (status === "success") {
     return (
-      <div className="rounded-xl border border-brand-orange/40 bg-surface p-6 text-center">
-        <p className="text-lg font-semibold text-white">Report sent</p>
+      <div
+        role="status"
+        aria-live="polite"
+        className="rounded-xl border border-emerald-500/40 bg-surface p-6 text-center"
+      >
+        <div
+          className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/40 motion-safe:animate-[success-pop_420ms_ease-out]"
+          aria-hidden
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="size-9 text-emerald-400"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <p className="mt-4 text-lg font-semibold text-white">Report sent</p>
         <p className="mt-2 text-sm text-muted">
           Your checklist was submitted successfully.
         </p>

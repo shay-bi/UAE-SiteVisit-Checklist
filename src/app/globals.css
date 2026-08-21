@@ -28,3 +28,30 @@ body {
   color: var(--foreground);
   font-family: var(--font-brand), "Segoe UI", sans-serif;
 }
+
+@keyframes success-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Visible scrollbar for embedded PDF viewers (WebKit / Blink). */
+.pdf-viewer::-webkit-scrollbar {
+  width: 10px;
+}
+
+.pdf-viewer::-webkit-scrollbar-track {
+  background: #e5e5e5;
+  border-radius: 999px;
+}
+
+.pdf-viewer::-webkit-scrollbar-thumb {
+  background: #f05a28;
+  border-radius: 999px;
+  border: 2px solid #e5e5e5;
+}
