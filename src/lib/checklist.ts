@@ -24,7 +24,7 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
       {
         id: "in-site-1",
         label:
-          "Client informed that: maintenance started, expected duration, and procedure",
+          "Client informed that: maintenance started, expected duration, and the procedure that is about to be conducted",
       },
       {
         id: "in-site-2",
