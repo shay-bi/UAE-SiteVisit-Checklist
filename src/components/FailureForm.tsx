@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   SAFETY_CHECKLIST,
   requiredChecklistItemIds,
 } from "@/lib/checklist";
 import type { StoredUser } from "@/lib/auth";
+import {
+  clearFormDraft,
+  loadFormDraft,
+  saveFormDraft,
+} from "@/lib/form-draft";
 import type { ChecklistItem } from "@/lib/types";
 
 type Status = "idle" | "submitting" | "success" | "error";
@@ -50,11 +55,27 @@ function ChecklistItemLabel({ item }: { item: ChecklistItem }) {
 
 export function FailureForm({ user }: FailureFormProps) {
   const requiredItemIds = useMemo(() => requiredChecklistItemIds(), []);
+  const [ready, setReady] = useState(false);
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const draft = loadFormDraft(user.email);
+    if (draft) {
+      setSiteLocation(draft.siteLocation);
+      setChecked(draft.checked);
+      setNotes(draft.notes);
+    }
+    setReady(true);
+  }, [user.email]);
+
+  useEffect(() => {
+    if (!ready || status === "success") return;
+    saveFormDraft(user.email, { siteLocation, checked, notes });
+  }, [user.email, siteLocation, checked, notes, ready, status]);
 
   function toggleItem(id: string) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -111,6 +132,7 @@ export function FailureForm({ user }: FailureFormProps) {
         return;
       }
 
+      clearFormDraft(user.email);
       setStatus("success");
       setSiteLocation("");
       setChecked({});
@@ -119,6 +141,14 @@ export function FailureForm({ user }: FailureFormProps) {
       setStatus("error");
       setErrorMessage("Network error. Check your connection and try again.");
     }
+  }
+
+  if (!ready) {
+    return (
+      <p className="text-center text-sm text-muted" aria-live="polite">
+        Loading…
+      </p>
+    );
   }
 
   if (status === "success") {
