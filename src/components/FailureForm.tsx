@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   SAFETY_CHECKLIST,
   requiredChecklistItemIds,
@@ -11,6 +11,7 @@ import {
   clearFormDraft,
   loadFormDraft,
   saveFormDraft,
+  type FormDraft,
 } from "@/lib/form-draft";
 import type { ChecklistItem } from "@/lib/types";
 
@@ -61,24 +62,68 @@ export function FailureForm({ user }: FailureFormProps) {
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const draftRef = useRef<FormDraft>({
+    siteLocation: "",
+    checked: {},
+    notes: "",
+  });
+  const persistEnabled = useRef(false);
 
-  useEffect(() => {
+  function persistDraft(next: FormDraft) {
+    draftRef.current = next;
+    if (!persistEnabled.current) return;
+    saveFormDraft(user.email, next);
+  }
+
+  useLayoutEffect(() => {
     const draft = loadFormDraft(user.email);
-    if (draft) {
-      setSiteLocation(draft.siteLocation);
-      setChecked(draft.checked);
-      setNotes(draft.notes);
-    }
+    draftRef.current = draft;
+    setSiteLocation(draft.siteLocation);
+    setChecked(draft.checked);
+    setNotes(draft.notes);
+    persistEnabled.current = true;
     setReady(true);
   }, [user.email]);
 
+  // Flush before leaving for any other page / tab hide / refresh.
   useEffect(() => {
-    if (!ready || status === "success") return;
-    saveFormDraft(user.email, { siteLocation, checked, notes });
-  }, [user.email, siteLocation, checked, notes, ready, status]);
+    function flush() {
+      if (!persistEnabled.current) return;
+      saveFormDraft(user.email, draftRef.current);
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("beforeunload", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      flush();
+      window.removeEventListener("pagehide", flush);
+      window.removeEventListener("beforeunload", flush);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [user.email]);
+
+  function updateSiteLocation(value: string) {
+    setSiteLocation(value);
+    persistDraft({ ...draftRef.current, siteLocation: value });
+  }
+
+  function updateNotes(value: string) {
+    setNotes(value);
+    persistDraft({ ...draftRef.current, notes: value });
+  }
 
   function toggleItem(id: string) {
-    setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
+    setChecked((prev) => {
+      const nextChecked = { ...prev, [id]: !prev[id] };
+      persistDraft({ ...draftRef.current, checked: nextChecked });
+      return nextChecked;
+    });
   }
 
   function validate(): string | null {
@@ -132,7 +177,9 @@ export function FailureForm({ user }: FailureFormProps) {
         return;
       }
 
+      persistEnabled.current = false;
       clearFormDraft(user.email);
+      draftRef.current = { siteLocation: "", checked: {}, notes: "" };
       setStatus("success");
       setSiteLocation("");
       setChecked({});
@@ -161,7 +208,10 @@ export function FailureForm({ user }: FailureFormProps) {
         <button
           type="button"
           className="mt-6 w-full rounded-lg bg-brand-orange px-4 py-3.5 text-base font-semibold text-white active:bg-brand-orange-hover"
-          onClick={() => setStatus("idle")}
+          onClick={() => {
+            persistEnabled.current = true;
+            setStatus("idle");
+          }}
         >
           Submit another report
         </button>
@@ -179,7 +229,7 @@ export function FailureForm({ user }: FailureFormProps) {
           required
           name="siteLocation"
           value={siteLocation}
-          onChange={(e) => setSiteLocation(e.target.value)}
+          onChange={(e) => updateSiteLocation(e.target.value)}
           placeholder="e.g. site name + failure details"
           className={fieldClass}
         />
@@ -251,7 +301,7 @@ export function FailureForm({ user }: FailureFormProps) {
           name="notes"
           rows={4}
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={(e) => updateNotes(e.target.value)}
           placeholder="Anything else operations should know…"
           className="rounded-lg border border-border bg-surface-elevated px-4 py-3 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2"
         />
