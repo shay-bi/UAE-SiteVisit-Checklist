@@ -2,7 +2,8 @@ import type { ChecklistGroup } from "./types";
 
 /**
  * Site visit safety checklist.
- * Optional groups (e.g. Flight) are only filled when relevant.
+ * Optional groups (e.g. Flight): if the first item is checked, the rest of
+ * that group becomes mandatory for submit.
  */
 export const SAFETY_CHECKLIST: ChecklistGroup[] = [
   {
@@ -93,14 +94,46 @@ export function findItemLabel(itemId: string): string {
   return itemId;
 }
 
-/** Required checklist item ids (skips optional groups like Flight). */
-export function requiredChecklistItemIds(): string[] {
-  return SAFETY_CHECKLIST.filter((group) => !group.optional).flatMap((group) =>
-    group.items.map((item) => item.id),
-  );
+type CheckedLookup =
+  | Record<string, boolean>
+  | Set<string>
+  | readonly string[];
+
+function isItemChecked(checked: CheckedLookup | undefined, id: string): boolean {
+  if (!checked) return false;
+  if (Array.isArray(checked)) return checked.includes(id);
+  if (checked instanceof Set) return checked.has(id);
+  return Boolean((checked as Record<string, boolean>)[id]);
+}
+
+/**
+ * Required checklist item ids.
+ * Optional groups (e.g. Flight) stay optional unless the first item in that
+ * group is checked — then every item in the group is required.
+ */
+export function requiredChecklistItemIds(
+  checked?: CheckedLookup,
+): string[] {
+  const ids: string[] = [];
+
+  for (const group of SAFETY_CHECKLIST) {
+    if (!group.optional) {
+      ids.push(...group.items.map((item) => item.id));
+      continue;
+    }
+
+    const gateId = group.items[0]?.id;
+    if (gateId && isItemChecked(checked, gateId)) {
+      ids.push(...group.items.map((item) => item.id));
+    }
+  }
+
+  return ids;
 }
 
 /** @deprecated use requiredChecklistItemIds */
-export function allChecklistItemIds(): string[] {
-  return requiredChecklistItemIds();
+export function allChecklistItemIds(
+  checked?: CheckedLookup,
+): string[] {
+  return requiredChecklistItemIds(checked);
 }

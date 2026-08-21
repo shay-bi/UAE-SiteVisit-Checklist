@@ -82,13 +82,16 @@ function ChecklistItemLabel({ item }: { item: ChecklistItem }) {
 }
 
 export function FailureForm({ user }: FailureFormProps) {
-  const requiredItemIds = useMemo(() => requiredChecklistItemIds(), []);
   const [ready, setReady] = useState(false);
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const requiredItemIds = useMemo(
+    () => requiredChecklistItemIds(checked),
+    [checked],
+  );
   const draftRef = useRef<FormDraft>({
     siteLocation: "",
     checked: {},
@@ -176,12 +179,9 @@ export function FailureForm({ user }: FailureFormProps) {
 
     setStatus("submitting");
 
-    const checkedItemIds = [
-      ...requiredItemIds,
-      ...SAFETY_CHECKLIST.filter((g) => g.optional)
-        .flatMap((g) => g.items.map((i) => i.id))
-        .filter((id) => checked[id]),
-    ];
+    const checkedItemIds = SAFETY_CHECKLIST.flatMap((g) =>
+      g.items.map((i) => i.id).filter((id) => checked[id]),
+    );
 
     try {
       const res = await fetch("/api/submit", {
@@ -291,15 +291,27 @@ export function FailureForm({ user }: FailureFormProps) {
                   {group.title}
                 </h3>
               </div>
+              {group.optional &&
+                group.items[0] &&
+                checked[group.items[0].id] && (
+                  <p className="mt-2 text-xs text-red-300/90">
+                    Flight started — complete every item in this section.
+                  </p>
+                )}
               <ul className="mt-3 flex flex-col gap-3">
-                {group.items.map((item) => {
+                {group.items.map((item, index) => {
                   const on = Boolean(checked[item.id]);
+                  const sectionGated =
+                    Boolean(group.optional) &&
+                    Boolean(group.items[0] && checked[group.items[0].id]);
+                  const itemRequired =
+                    !group.optional || (sectionGated && index > 0);
                   return (
                     <li key={item.id}>
                       <label className="flex min-h-11 cursor-pointer items-start gap-3">
                         <input
                           type="checkbox"
-                          required={!group.optional}
+                          required={itemRequired}
                           checked={on}
                           onChange={() => toggleItem(item.id)}
                           className={

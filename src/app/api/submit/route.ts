@@ -20,8 +20,9 @@ function isValidPayload(body: unknown): body is SubmitPayload {
   if (!Array.isArray(b.checkedItemIds)) return false;
   if (!b.checkedItemIds.every((id) => typeof id === "string")) return false;
 
-  const requiredIds = requiredChecklistItemIds();
-  const checked = new Set(b.checkedItemIds as string[]);
+  const checkedIds = b.checkedItemIds as string[];
+  const checked = new Set(checkedIds);
+  const requiredIds = requiredChecklistItemIds(checkedIds);
   if (requiredIds.length === 0 || requiredIds.some((id) => !checked.has(id))) {
     return false;
   }

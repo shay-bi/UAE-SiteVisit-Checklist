@@ -13,8 +13,11 @@ export const metadata: Metadata = {
   description:
     "Mobile safety checklist for Airobotics Dubai employees on site visits.",
   icons: {
-    icon: [{ url: "/favicon.ico" }, { url: "/icon.png", type: "image/png" }],
-    apple: [{ url: "/apple-icon.png" }],
+    icon: [
+      { url: "/favicon.ico?v=3" },
+      { url: "/icon.png?v=3", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon.png?v=3" }],
   },
 };
 
