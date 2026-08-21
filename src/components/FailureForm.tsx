@@ -151,11 +151,6 @@ export function FailureForm({ user }: FailureFormProps) {
                 >
                   {group.title}
                 </h3>
-                {group.optional && (
-                  <span className="rounded bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-300">
-                    Only if flight needed
-                  </span>
-                )}
               </div>
               <ul className="mt-3 flex flex-col gap-3">
                 {group.items.map((item) => {

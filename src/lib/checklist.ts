@@ -33,7 +33,7 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
   },
   {
     id: "flight",
-    title: "Flight (if required)",
+    title: "Flight (if needed)",
     optional: true,
     variant: "danger",
     items: [
