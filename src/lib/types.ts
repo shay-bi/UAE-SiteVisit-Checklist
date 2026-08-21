@@ -1,6 +1,11 @@
 export type ChecklistItem = {
   id: string;
   label: string;
+  /** Optional action button shown next to the item (e.g. Flight Report). */
+  action?: {
+    href: string;
+    label: string;
+  };
 };
 
 export type ChecklistGroup = {

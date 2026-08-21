@@ -161,7 +161,7 @@ export function FailureForm({ user }: FailureFormProps) {
                 {group.items.map((item) => {
                   const on = Boolean(checked[item.id]);
                   return (
-                    <li key={item.id}>
+                    <li key={item.id} className="flex flex-col gap-2">
                       <label className="flex min-h-11 cursor-pointer items-start gap-3">
                         <input
                           type="checkbox"
@@ -178,6 +178,14 @@ export function FailureForm({ user }: FailureFormProps) {
                           {item.label}
                         </span>
                       </label>
+                      {item.action && (
+                        <a
+                          href={item.action.href}
+                          className="ml-8 inline-flex min-h-11 w-fit items-center justify-center rounded-lg bg-brand-orange px-4 text-sm font-semibold text-white"
+                        >
+                          {item.action.label}
+                        </a>
+                      )}
                     </li>
                   );
                 })}

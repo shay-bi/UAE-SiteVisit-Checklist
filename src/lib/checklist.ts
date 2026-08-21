@@ -7,7 +7,7 @@ import type { ChecklistGroup } from "./types";
 export const SAFETY_CHECKLIST: ChecklistGroup[] = [
   {
     id: "readiness",
-    title: "Readiness",
+    title: "Before site",
     items: [
       {
         id: "readiness-1",
@@ -22,7 +22,8 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     items: [
       {
         id: "in-site-1",
-        label: "Client informed: maintenance started, expected duration, and procedure",
+        label:
+          "Client informed that: maintenance started, expected duration, and procedure",
       },
       {
         id: "in-site-2",
@@ -38,10 +39,18 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     items: [
       {
         id: "flight-1",
-        label: 'Read the "Flight Report" before any flight',
+        label: "Read the Flight Report before any flight",
+        action: {
+          href: "/flight-report",
+          label: "Flight Report",
+        },
       },
       {
         id: "flight-2",
+        label: "Check the GPS App",
+      },
+      {
+        id: "flight-3",
         label: "Got investigator approval to start the flight",
       },
     ],
