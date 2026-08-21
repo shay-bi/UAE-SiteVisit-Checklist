@@ -7,12 +7,13 @@ export default function Home() {
       <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-10 pt-8 sm:px-6">
         <header className="mb-8 flex flex-col items-center text-center">
           <Image
-            src="/brand/airobotics-dubai-logo.png"
+            src="/brand/airobotics-dubai-logo.png?v=2"
             alt="Airobotics Dubai"
             width={480}
             height={160}
             priority
-            className="h-auto w-full max-w-sm"
+            unoptimized
+            className="h-auto w-full max-w-sm bg-transparent"
           />
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
             Site Visit Checklist

@@ -7,12 +7,13 @@ export default function AdminPage() {
       <div className="relative mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-10 pt-8 sm:px-6">
         <header className="mb-8 flex flex-col items-center text-center">
           <Image
-            src="/brand/airobotics-dubai-logo.png"
+            src="/brand/airobotics-dubai-logo.png?v=2"
             alt="Airobotics Dubai"
             width={400}
             height={133}
             priority
-            className="h-auto w-full max-w-xs"
+            unoptimized
+            className="h-auto w-full max-w-xs bg-transparent"
           />
           <h1 className="mt-4 text-2xl font-semibold tracking-tight text-white">
             Admin panel
