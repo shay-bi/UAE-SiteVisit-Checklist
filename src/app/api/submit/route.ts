@@ -7,6 +7,7 @@ import {
   requiredChecklistItemIds,
 } from "@/lib/checklist";
 import { saveReport } from "@/lib/reports-store";
+import { isValidStation } from "@/lib/stations";
 import type { SubmitPayload } from "@/lib/types";
 
 function isValidPayload(body: unknown): body is SubmitPayload {
@@ -15,8 +16,9 @@ function isValidPayload(body: unknown): body is SubmitPayload {
   if (typeof b.employeeName !== "string" || !b.employeeName.trim()) return false;
   if (typeof b.employeeEmail !== "string" || !isWorkEmail(b.employeeEmail))
     return false;
-  if (typeof b.siteLocation !== "string" || !b.siteLocation.trim()) return false;
-  if (typeof b.notes !== "string" || !b.notes.trim()) return false;
+  if (typeof b.siteLocation !== "string" || !isValidStation(b.siteLocation))
+    return false;
+  if (typeof b.notes !== "string") return false;
   if (!Array.isArray(b.checkedItemIds)) return false;
   if (!b.checkedItemIds.every((id) => typeof id === "string")) return false;
 
@@ -91,14 +93,14 @@ export async function POST(request: Request) {
     "",
     `Employee: ${employeeName}`,
     `Email: ${employeeEmail}`,
-    `Site + Failure: ${siteLocation}`,
+    `Station: ${siteLocation}`,
     `Submitted (UAE): ${submittedAt}`,
     "",
     "Safety checklist:",
     ...checkedLines,
     "",
     "Additional notes:",
-    notes,
+    notes || "(none)",
   ].join("\n");
 
   const html = `
@@ -106,14 +108,14 @@ export async function POST(request: Request) {
       <h1 style="font-size:18px;margin:0 0 12px">Airobotics — Site Visit Safety Report</h1>
       <p style="margin:0 0 8px"><strong>Employee:</strong> ${escapeHtml(employeeName)}</p>
       <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(employeeEmail)}</p>
-      <p style="margin:0 0 8px"><strong>Site + Failure:</strong> ${escapeHtml(siteLocation)}</p>
+      <p style="margin:0 0 8px"><strong>Station:</strong> ${escapeHtml(siteLocation)}</p>
       <p style="margin:0 0 16px"><strong>Submitted (UAE):</strong> ${escapeHtml(submittedAt)}</p>
       <h2 style="font-size:15px;margin:0 0 8px">Safety checklist</h2>
       <ul style="margin:0 0 16px;padding-left:20px">
         ${checkedLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}
       </ul>
       <h2 style="font-size:15px;margin:0 0 8px">Additional notes</h2>
-      <p style="margin:0;white-space:pre-wrap">${escapeHtml(notes)}</p>
+      <p style="margin:0;white-space:pre-wrap">${escapeHtml(notes || "(none)")}</p>
     </div>
   `;
 

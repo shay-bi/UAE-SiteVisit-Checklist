@@ -223,7 +223,7 @@ export function AdminPanel() {
               </dd>
             </div>
             <div>
-              <dt className="text-muted">Site + Failure</dt>
+              <dt className="text-muted">Station</dt>
               <dd className="text-white">{selected.siteLocation}</dd>
             </div>
             <div>

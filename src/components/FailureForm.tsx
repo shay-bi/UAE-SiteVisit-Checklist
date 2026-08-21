@@ -13,12 +13,11 @@ import {
   saveFormDraft,
   type FormDraft,
 } from "@/lib/form-draft";
+import { isValidStation } from "@/lib/stations";
 import type { ChecklistItem } from "@/lib/types";
+import { StationSelect } from "@/components/StationSelect";
 
 type Status = "idle" | "submitting" | "success" | "error";
-
-const fieldClass =
-  "min-h-12 rounded-lg border border-border bg-surface-elevated px-4 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2";
 
 type FailureFormProps = {
   user: StoredUser;
@@ -108,9 +107,15 @@ export function FailureForm({ user }: FailureFormProps) {
   useLayoutEffect(() => {
     const draft = loadFormDraft(user.email);
     draftRef.current = draft;
-    setSiteLocation(draft.siteLocation);
+    const station = isValidStation(draft.siteLocation)
+      ? draft.siteLocation.trim()
+      : "";
+    setSiteLocation(station);
     setChecked(draft.checked);
     setNotes(draft.notes);
+    if (station !== draft.siteLocation) {
+      draftRef.current = { ...draft, siteLocation: station };
+    }
     persistEnabled.current = true;
     setReady(true);
   }, [user.email]);
@@ -157,12 +162,13 @@ export function FailureForm({ user }: FailureFormProps) {
   }
 
   function validate(): string | null {
-    if (!siteLocation.trim()) return "Site + Failure is required.";
+    if (!isValidStation(siteLocation)) {
+      return "Please select a station from the list.";
+    }
     const missing = requiredItemIds.filter((id) => !checked[id]);
     if (missing.length > 0) {
       return "Please complete all required checklist items.";
     }
-    if (!notes.trim()) return "Additional notes are required.";
     return null;
   }
 
@@ -270,15 +276,12 @@ export function FailureForm({ user }: FailureFormProps) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-6" noValidate>
       <label className="flex flex-col gap-2">
         <span className="text-sm font-medium text-muted">
-          Site + Failure <span className="text-brand-orange">*</span>
+          Station <span className="text-brand-orange">*</span>
         </span>
-        <input
-          required
-          name="siteLocation"
+        <StationSelect
           value={siteLocation}
-          onChange={(e) => updateSiteLocation(e.target.value)}
-          placeholder="e.g. site name + failure details"
-          className={fieldClass}
+          onChange={updateSiteLocation}
+          required
         />
       </label>
 
@@ -352,16 +355,13 @@ export function FailureForm({ user }: FailureFormProps) {
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-muted">
-          Additional notes <span className="text-brand-orange">*</span>
-        </span>
+        <span className="text-sm font-medium text-muted">Additional notes</span>
         <textarea
-          required
           name="notes"
           rows={4}
           value={notes}
           onChange={(e) => updateNotes(e.target.value)}
-          placeholder="Anything else operations should know…"
+          placeholder="Anything else operations should know… (optional)"
           className="rounded-lg border border-border bg-surface-elevated px-4 py-3 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2"
         />
       </label>
