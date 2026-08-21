@@ -1,10 +1,10 @@
 export type ChecklistItem = {
   id: string;
   label: string;
-  /** Optional action button shown next to the item (e.g. Flight Report). */
-  action?: {
+  /** Make this substring of `label` a link (e.g. "Flight Report"). */
+  inlineLink?: {
     href: string;
-    label: string;
+    text: string;
   };
 };
 

@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   SAFETY_CHECKLIST,
   requiredChecklistItemIds,
 } from "@/lib/checklist";
 import type { StoredUser } from "@/lib/auth";
+import type { ChecklistItem } from "@/lib/types";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -15,6 +17,36 @@ const fieldClass =
 type FailureFormProps = {
   user: StoredUser;
 };
+
+function ChecklistItemLabel({ item }: { item: ChecklistItem }) {
+  const link = item.inlineLink;
+  if (!link) {
+    return (
+      <span className="text-base leading-snug text-foreground">{item.label}</span>
+    );
+  }
+
+  const index = item.label.indexOf(link.text);
+  if (index === -1) {
+    return (
+      <span className="text-base leading-snug text-foreground">{item.label}</span>
+    );
+  }
+
+  return (
+    <span className="text-base leading-snug text-foreground">
+      {item.label.slice(0, index)}
+      <Link
+        href={link.href}
+        className="font-semibold text-brand-orange underline underline-offset-2"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {link.text}
+      </Link>
+      {item.label.slice(index + link.text.length)}
+    </span>
+  );
+}
 
 export function FailureForm({ user }: FailureFormProps) {
   const requiredItemIds = useMemo(() => requiredChecklistItemIds(), []);
@@ -156,7 +188,7 @@ export function FailureForm({ user }: FailureFormProps) {
                 {group.items.map((item) => {
                   const on = Boolean(checked[item.id]);
                   return (
-                    <li key={item.id} className="flex flex-col gap-2">
+                    <li key={item.id}>
                       <label className="flex min-h-11 cursor-pointer items-start gap-3">
                         <input
                           type="checkbox"
@@ -169,18 +201,8 @@ export function FailureForm({ user }: FailureFormProps) {
                               : "mt-1 size-5 shrink-0 rounded border-border accent-[var(--brand-orange)]"
                           }
                         />
-                        <span className="text-base leading-snug text-foreground">
-                          {item.label}
-                        </span>
+                        <ChecklistItemLabel item={item} />
                       </label>
-                      {item.action && (
-                        <a
-                          href={item.action.href}
-                          className="ml-8 inline-flex min-h-11 w-fit items-center justify-center rounded-lg bg-brand-orange px-4 text-sm font-semibold text-white"
-                        >
-                          {item.action.label}
-                        </a>
-                      )}
                     </li>
                   );
                 })}

@@ -40,9 +40,9 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
       {
         id: "flight-1",
         label: "Read the Flight Report before any flight",
-        action: {
+        inlineLink: {
           href: "/flight-report",
-          label: "Flight Report",
+          text: "Flight Report",
         },
       },
       {
@@ -61,8 +61,10 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     items: [
       { id: "close-1", label: "Station in RedCon and ready for operation" },
       { id: "close-2", label: "All work tools returned" },
-      { id: "close-3", label: "Investigators informed" },
-      { id: "close-4", label: "Station returned to the client" },
+      {
+        id: "close-3",
+        label: "Investigators informed; station returned to the client",
+      },
     ],
   },
 ];
