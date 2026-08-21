@@ -84,7 +84,7 @@ export function FailureForm({ user }: FailureFormProps) {
       <div className="rounded-xl border border-brand-orange/40 bg-surface p-6 text-center">
         <p className="text-lg font-semibold text-white">Report sent</p>
         <p className="mt-2 text-sm text-muted">
-          Your checklist was emailed to operations.
+          Your checklist was submitted successfully.
         </p>
         <button
           type="button"

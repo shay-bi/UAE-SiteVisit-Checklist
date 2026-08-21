@@ -36,8 +36,14 @@ export async function POST(request: Request) {
   }
 
   if (!process.env.ADMIN_PASSWORD || !process.env.ADMIN_SESSION_SECRET) {
+    const missing = [
+      !process.env.ADMIN_PASSWORD ? "ADMIN_PASSWORD" : null,
+      !process.env.ADMIN_SESSION_SECRET ? "ADMIN_SESSION_SECRET" : null,
+    ].filter(Boolean);
     return NextResponse.json(
-      { error: "Admin login is not configured on the server." },
+      {
+        error: `Admin login is not configured on the server. Missing: ${missing.join(", ")}. Add it in Vercel → Settings → Environment Variables, then redeploy.`,
+      },
       { status: 500 },
     );
   }

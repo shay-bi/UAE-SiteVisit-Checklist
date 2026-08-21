@@ -32,8 +32,7 @@ export default function Home() {
             Site Visit Checklist
           </h1>
           <p className="mt-2 max-w-sm text-base leading-relaxed text-muted">
-            Complete this safety checklist once per site visit. Your report is
-            emailed to operations.
+            Complete this safety checklist once per site visit.
           </p>
           <div className="mt-4 h-1 w-12 rounded-sm bg-brand-orange" />
         </header>
