@@ -51,6 +51,14 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
       },
       {
         id: "flight-3",
+        label: "Work with the Flights Pricelist",
+        inlineLink: {
+          href: "/flights-pricelist",
+          text: "Flights Pricelist",
+        },
+      },
+      {
+        id: "flight-4",
         label: "Got investigator approval to start the flight",
       },
     ],
@@ -59,11 +67,15 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     id: "closeout",
     title: "Close-out",
     items: [
-      { id: "close-1", label: "Station in RedCon and ready for operation" },
-      { id: "close-2", label: "All work tools returned" },
       {
-        id: "close-3",
-        label: "Investigators informed; station returned to the client",
+        id: "close-1",
+        label: "",
+        bullets: [
+          "Station in RedCon and ready for operation",
+          "Synchronized Takeoff and Supervisor fields are restored",
+          "All work tools returned",
+          "Investigators informed; station returned to the client",
+        ],
       },
     ],
   },
@@ -72,7 +84,11 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
 export function findItemLabel(itemId: string): string {
   for (const group of SAFETY_CHECKLIST) {
     const item = group.items.find((i) => i.id === itemId);
-    if (item) return item.label;
+    if (!item) continue;
+    if (item.bullets?.length) {
+      return item.bullets.map((b) => `- ${b}`).join(" ");
+    }
+    return item.label;
   }
   return itemId;
 }

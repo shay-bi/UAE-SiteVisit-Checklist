@@ -26,30 +26,57 @@ type FailureFormProps = {
 
 function ChecklistItemLabel({ item }: { item: ChecklistItem }) {
   const link = item.inlineLink;
-  if (!link) {
-    return (
-      <span className="text-base leading-snug text-foreground">{item.label}</span>
-    );
-  }
+  const hasBullets = Boolean(item.bullets?.length);
 
-  const index = item.label.indexOf(link.text);
-  if (index === -1) {
-    return (
-      <span className="text-base leading-snug text-foreground">{item.label}</span>
-    );
+  let main: React.ReactNode = null;
+  if (!hasBullets || item.label.trim()) {
+    if (!link) {
+      main = (
+        <span className="text-base leading-snug text-foreground">
+          {item.label}
+        </span>
+      );
+    } else {
+      const index = item.label.indexOf(link.text);
+      if (index === -1) {
+        main = (
+          <span className="text-base leading-snug text-foreground">
+            {item.label}
+          </span>
+        );
+      } else {
+        main = (
+          <span className="text-base leading-snug text-foreground">
+            {item.label.slice(0, index)}
+            <Link
+              href={link.href}
+              className="font-semibold text-brand-orange underline underline-offset-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {link.text}
+            </Link>
+            {item.label.slice(index + link.text.length)}
+          </span>
+        );
+      }
+    }
   }
 
   return (
-    <span className="text-base leading-snug text-foreground">
-      {item.label.slice(0, index)}
-      <Link
-        href={link.href}
-        className="font-semibold text-brand-orange underline underline-offset-2"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {link.text}
-      </Link>
-      {item.label.slice(index + link.text.length)}
+    <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+      {main}
+      {hasBullets && (
+        <ul className="flex flex-col gap-1 text-base leading-snug text-foreground">
+          {item.bullets!.map((bullet) => (
+            <li key={bullet} className="flex gap-2">
+              <span className="shrink-0 text-muted" aria-hidden>
+                -
+              </span>
+              <span>{bullet}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </span>
   );
 }
@@ -321,7 +348,7 @@ export function FailureForm({ user }: FailureFormProps) {
         disabled={status === "submitting"}
         className="sticky bottom-4 min-h-14 w-full rounded-lg bg-brand-orange px-4 text-base font-semibold text-white shadow-lg shadow-brand-orange/25 disabled:opacity-60 active:brightness-110"
       >
-        {status === "submitting" ? "Sending…" : "Submit report"}
+        {status === "submitting" ? "Sending…" : "Submit"}
       </button>
     </form>
   );

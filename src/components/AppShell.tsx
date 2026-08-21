@@ -8,6 +8,7 @@ import { isAdminUser, loadUser } from "@/lib/auth";
 const NAV = [
   { href: "/", label: "Checklist" },
   { href: "/flight-report", label: "Flight Report" },
+  { href: "/flights-pricelist", label: "Flights Pricelist" },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

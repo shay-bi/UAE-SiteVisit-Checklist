@@ -1,6 +1,8 @@
 export type ChecklistItem = {
   id: string;
   label: string;
+  /** Optional bullet lines shown under the main label (one checkbox). */
+  bullets?: string[];
   /** Make this substring of `label` a link (e.g. "Flight Report"). */
   inlineLink?: {
     href: string;
