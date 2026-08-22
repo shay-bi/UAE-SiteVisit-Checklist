@@ -47,10 +47,6 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
         },
       },
       {
-        id: "flight-2",
-        label: "Check the GPS App",
-      },
-      {
         id: "flight-3",
         label: "Work with the Flights Pricelist",
         inlineLink: {
