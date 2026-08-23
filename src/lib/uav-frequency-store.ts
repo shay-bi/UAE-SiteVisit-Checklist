@@ -3,11 +3,19 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { FieldValue } from "firebase-admin/firestore";
 import { FIRESTORE, getDb } from "@/lib/firebase/admin";
+import { migrateHomeToFacility } from "@/lib/stations";
 import {
   DEFAULT_UAV_FREQUENCY_ROWS,
   type UavFrequencyProposal,
   type UavFrequencyRow,
 } from "@/lib/uav-frequency-table";
+
+function migrateRows(rows: UavFrequencyRow[]): UavFrequencyRow[] {
+  return rows.map((row) => ({
+    ...row,
+    location: migrateHomeToFacility(row.location),
+  }));
+}
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "uav-frequency.json");
@@ -128,10 +136,10 @@ async function saveRowsToFirestore(
 
 export async function getUavFrequencyRows(): Promise<UavFrequencyRow[]> {
   try {
-    return await getRowsFromFirestore();
+    return migrateRows(await getRowsFromFirestore());
   } catch (error) {
     console.error("Firestore getUavFrequencyRows failed:", error);
-    return getRowsFromFile();
+    return migrateRows(await getRowsFromFile());
   }
 }
 

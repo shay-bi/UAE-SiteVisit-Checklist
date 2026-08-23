@@ -23,23 +23,23 @@ export type UavFrequencyProposal = {
 };
 
 export const DEFAULT_UAV_FREQUENCY_ROWS: UavFrequencyRow[] = [
-  { key: "r1", id: "1", uav: "NONE", frequency: "433.1", location: "HOME" },
+  { key: "r1", id: "1", uav: "NONE", frequency: "433.1", location: "FACILITY" },
   { key: "r2", id: "2", uav: "322, 423", frequency: "433.1", location: "204, 209" },
-  { key: "r3", id: "3", uav: "412", frequency: "433.1", location: "HOME" },
+  { key: "r3", id: "3", uav: "412", frequency: "433.1", location: "FACILITY" },
   { key: "r4", id: "4", uav: "414", frequency: "433.1", location: "216" },
   { key: "r5", id: "5", uav: "NONE", frequency: "433.1", location: "" },
   { key: "r6", id: "6", uav: "421", frequency: "433.9", location: "208" },
-  { key: "r7", id: "7", uav: "398", frequency: "433.9", location: "HOME" },
-  { key: "r8", id: "8", uav: "391", frequency: "433.9", location: "HOME" },
-  { key: "r9", id: "9", uav: "409", frequency: "433.9", location: "HOME" },
+  { key: "r7", id: "7", uav: "398", frequency: "433.9", location: "FACILITY" },
+  { key: "r8", id: "8", uav: "391", frequency: "433.9", location: "FACILITY" },
+  { key: "r9", id: "9", uav: "409", frequency: "433.9", location: "FACILITY" },
   { key: "r10", id: "0", uav: "NONE", frequency: "433.9", location: "" },
   { key: "r11", id: "A", uav: "418", frequency: "434.75", location: "212" },
-  { key: "r12", id: "B", uav: "399, 415", frequency: "434.75", location: "HOME, 205" },
-  { key: "r13", id: "C", uav: "416, 422", frequency: "434.75", location: "HOME" },
-  { key: "r14", id: "D", uav: "396", frequency: "434.75", location: "HOME" },
+  { key: "r12", id: "B", uav: "399, 415", frequency: "434.75", location: "FACILITY, 205" },
+  { key: "r13", id: "C", uav: "416, 422", frequency: "434.75", location: "FACILITY" },
+  { key: "r14", id: "D", uav: "396", frequency: "434.75", location: "FACILITY" },
   { key: "r15", id: "E", uav: "402", frequency: "434.75", location: "208" },
   { key: "r16", id: "F", uav: "395, 417", frequency: "434.75", location: "212" },
-  { key: "r17", id: "-", uav: "369", frequency: "-", location: "HOME" },
+  { key: "r17", id: "-", uav: "369", frequency: "-", location: "FACILITY" },
 ];
 
 export function frequencyBand(frequency: string): FrequencyBand {

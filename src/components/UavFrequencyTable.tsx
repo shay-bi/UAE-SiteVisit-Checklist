@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { isAdminUser, loadUser, type StoredUser } from "@/lib/auth";
+import { migrateHomeToFacility } from "@/lib/stations";
+import { LocationSelect } from "@/components/LocationSelect";
 import {
   DEFAULT_UAV_FREQUENCY_ROWS,
   bandRowClass,
@@ -14,15 +16,19 @@ import {
   type UavFrequencyRow,
 } from "@/lib/uav-frequency-table";
 
-type EditableField = keyof Pick<
-  UavFrequencyRow,
-  "id" | "uav" | "frequency" | "location"
->;
+type EditableField = keyof Pick<UavFrequencyRow, "id" | "uav" | "frequency">;
 
 type Mode = "view" | "edit";
 
 const cellInputClass =
   "w-full min-w-0 rounded-md border border-black/10 bg-white/80 px-1.5 py-2 text-center text-sm text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1";
+
+function migrateRows(rows: UavFrequencyRow[]): UavFrequencyRow[] {
+  return rows.map((row) => ({
+    ...row,
+    location: migrateHomeToFacility(row.location),
+  }));
+}
 
 export function UavFrequencyTable() {
   const [published, setPublished] = useState<UavFrequencyRow[]>([]);
@@ -55,16 +61,18 @@ export function UavFrequencyTable() {
         rows?: UavFrequencyRow[];
         pending?: UavFrequencyProposal[];
       };
-      const nextRows =
+      const nextRows = migrateRows(
         data.rows && data.rows.length > 0
           ? data.rows
-          : [...DEFAULT_UAV_FREQUENCY_ROWS];
+          : [...DEFAULT_UAV_FREQUENCY_ROWS],
+      );
       setPublished(nextRows);
       setDraft(nextRows);
       setPending(data.pending ?? []);
     } catch {
-      setPublished([...DEFAULT_UAV_FREQUENCY_ROWS]);
-      setDraft([...DEFAULT_UAV_FREQUENCY_ROWS]);
+      const defaults = migrateRows([...DEFAULT_UAV_FREQUENCY_ROWS]);
+      setPublished(defaults);
+      setDraft(defaults);
       setError("Could not load the shared table.");
     } finally {
       setReady(true);
@@ -93,6 +101,14 @@ export function UavFrequencyTable() {
   function updateRow(key: string, field: EditableField, value: string) {
     setDraft((prev) =>
       prev.map((row) => (row.key === key ? { ...row, [field]: value } : row)),
+    );
+  }
+
+  function updateLocation(key: string, value: string) {
+    setDraft((prev) =>
+      prev.map((row) =>
+        row.key === key ? { ...row, location: value } : row,
+      ),
     );
   }
 
@@ -393,35 +409,41 @@ export function UavFrequencyTable() {
                 const band = frequencyBand(row.frequency);
                 return (
                   <tr key={row.key} className={bandRowClass(band)}>
-                    {(["id", "uav", "frequency", "location"] as const).map(
-                      (field) => (
-                        <td
-                          key={field}
-                          className="border-b border-black/5 px-1 py-1 text-center align-middle"
-                        >
-                          {mode === "edit" ? (
-                            <input
-                              type="text"
-                              inputMode={
-                                field === "frequency" || field === "id"
-                                  ? "text"
-                                  : "text"
-                              }
-                              value={row[field]}
-                              onChange={(e) =>
-                                updateRow(row.key, field, e.target.value)
-                              }
-                              aria-label={`${field} for row ${row.id || row.key}`}
-                              className={cellInputClass}
-                            />
-                          ) : (
-                            <span className="block break-words px-0.5 py-2 text-center text-[13px] leading-snug sm:text-sm">
-                              {row[field] || "—"}
-                            </span>
-                          )}
-                        </td>
-                      ),
-                    )}
+                    {(["id", "uav", "frequency"] as const).map((field) => (
+                      <td
+                        key={field}
+                        className="border-b border-black/5 px-1 py-1 text-center align-middle"
+                      >
+                        {mode === "edit" ? (
+                          <input
+                            type="text"
+                            value={row[field]}
+                            onChange={(e) =>
+                              updateRow(row.key, field, e.target.value)
+                            }
+                            aria-label={`${field} for row ${row.id || row.key}`}
+                            className={cellInputClass}
+                          />
+                        ) : (
+                          <span className="block break-words px-0.5 py-2 text-center text-[13px] leading-snug sm:text-sm">
+                            {row[field] || "—"}
+                          </span>
+                        )}
+                      </td>
+                    ))}
+                    <td className="border-b border-black/5 px-1 py-1 text-center align-middle">
+                      {mode === "edit" ? (
+                        <LocationSelect
+                          value={row.location}
+                          onChange={(value) => updateLocation(row.key, value)}
+                          aria-label={`Location for row ${row.id || row.key}`}
+                        />
+                      ) : (
+                        <span className="block break-words px-0.5 py-2 text-center text-[13px] leading-snug sm:text-sm">
+                          {row.location || "—"}
+                        </span>
+                      )}
+                    </td>
                     {mode === "edit" && (
                       <td className="border-b border-black/5 px-0.5 py-1 text-center align-middle">
                         <button
