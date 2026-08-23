@@ -2,19 +2,21 @@ import type { Metadata } from "next";
 import { UavFrequencyTable } from "@/components/UavFrequencyTable";
 
 export const metadata: Metadata = {
-  title: "UAV Frequency Table | Airobotics Dubai",
+  title: "UAVs & Lora IDs | Airobotics Dubai",
   description:
-    "Editable UAV frequency and location reference table for Airobotics Dubai site visits.",
+    "Shared UAVs and Lora ID reference table. Propose changes for admin approval.",
 };
 
 export default function UavFrequencyPage() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col px-4 pb-8 pt-16 sm:px-6">
-      <header className="mb-4">
-        <h1 className="text-2xl font-semibold text-white">UAV Frequency Table</h1>
-        <p className="mt-1 text-sm text-muted">
-          Shared reference table for UAV IDs, frequencies, and locations. Sign in
-          from the checklist to edit — changes sync for the whole team.
+    <div className="mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-10 pt-16 sm:max-w-2xl sm:px-6">
+      <header className="mb-5 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
+          UAVs &amp; Lora IDs
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          Live reference for the team. Propose an edit — it goes live only after
+          approval.
         </p>
       </header>
 

@@ -70,5 +70,6 @@ export const FIRESTORE = {
   reports: "reports",
   settings: "settings",
   uavFrequencyDoc: "uavFrequency",
+  uavFrequencyProposals: "uavFrequencyProposals",
   rateLimits: "rateLimits",
 } as const;

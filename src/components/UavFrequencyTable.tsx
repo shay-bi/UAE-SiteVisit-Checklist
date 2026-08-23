@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { loadUser } from "@/lib/auth";
+import { useEffect, useMemo, useState } from "react";
+import { isAdminUser, loadUser, type StoredUser } from "@/lib/auth";
 import {
   DEFAULT_UAV_FREQUENCY_ROWS,
   bandRowClass,
   createEmptyRow,
   frequencyBand,
+  rowsEqual,
+  summarizeRowDiff,
+  type UavFrequencyProposal,
   type UavFrequencyRow,
 } from "@/lib/uav-frequency-table";
 
@@ -16,189 +19,179 @@ type EditableField = keyof Pick<
   "id" | "uav" | "frequency" | "location"
 >;
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+type Mode = "view" | "edit";
 
 const cellInputClass =
-  "w-full min-w-0 rounded border border-black/10 bg-white/70 px-2 py-1.5 text-sm text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1";
-
-const SAVE_DEBOUNCE_MS = 600;
+  "w-full min-w-0 rounded-md border border-black/10 bg-white/80 px-1.5 py-2 text-center text-sm text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1";
 
 export function UavFrequencyTable() {
-  const [rows, setRows] = useState<UavFrequencyRow[]>([]);
+  const [published, setPublished] = useState<UavFrequencyRow[]>([]);
+  const [draft, setDraft] = useState<UavFrequencyRow[]>([]);
+  const [pending, setPending] = useState<UavFrequencyProposal[]>([]);
+  const [mode, setMode] = useState<Mode>("view");
   const [ready, setReady] = useState(false);
-  const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [canEdit, setCanEdit] = useState(false);
-  const rowsRef = useRef<UavFrequencyRow[]>([]);
-  const saveTimerRef = useRef<number | null>(null);
-  const skipSaveRef = useRef(true);
+  const [user, setUser] = useState<StoredUser | null>(null);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const persistRows = useCallback(async (nextRows: UavFrequencyRow[]) => {
-    const user = loadUser();
-    if (!user) {
-      setSaveState("error");
-      setErrorMessage("Sign in from the checklist page to save edits for everyone.");
-      return;
-    }
+  const isAdmin = Boolean(user && isAdminUser(user));
+  const canPropose = Boolean(user);
+  const dirty = useMemo(
+    () => mode === "edit" && !rowsEqual(published, draft),
+    [mode, published, draft],
+  );
 
-    setSaveState("saving");
-    setErrorMessage("");
+  async function loadTable() {
+    const signedIn = loadUser();
+    setUser(signedIn);
 
     try {
-      const res = await fetch("/api/uav-frequency", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          employeeEmail: user.email,
-          rows: nextRows,
-        }),
+      const res = await fetch("/api/uav-frequency?pending=1", {
+        cache: "no-store",
       });
-
-      const data = (await res.json()) as { error?: string; rows?: UavFrequencyRow[] };
-
-      if (!res.ok) {
-        setSaveState("error");
-        setErrorMessage(data.error ?? "Could not save the shared table.");
-        return;
-      }
-
-      if (data.rows) {
-        rowsRef.current = data.rows;
-        setRows(data.rows);
-      }
-
-      setSaveState("saved");
-      window.setTimeout(() => setSaveState("idle"), 1800);
+      const data = (await res.json()) as {
+        rows?: UavFrequencyRow[];
+        pending?: UavFrequencyProposal[];
+      };
+      const nextRows =
+        data.rows && data.rows.length > 0
+          ? data.rows
+          : [...DEFAULT_UAV_FREQUENCY_ROWS];
+      setPublished(nextRows);
+      setDraft(nextRows);
+      setPending(data.pending ?? []);
     } catch {
-      setSaveState("error");
-      setErrorMessage("Network error while saving. Check your connection.");
+      setPublished([...DEFAULT_UAV_FREQUENCY_ROWS]);
+      setDraft([...DEFAULT_UAV_FREQUENCY_ROWS]);
+      setError("Could not load the shared table.");
+    } finally {
+      setReady(true);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    async function loadRows() {
-      const user = loadUser();
-      setCanEdit(Boolean(user));
-
-      try {
-        const res = await fetch("/api/uav-frequency", { cache: "no-store" });
-        const data = (await res.json()) as { rows?: UavFrequencyRow[] };
-        const nextRows =
-          data.rows && data.rows.length > 0
-            ? data.rows
-            : [...DEFAULT_UAV_FREQUENCY_ROWS];
-        rowsRef.current = nextRows;
-        setRows(nextRows);
-      } catch {
-        rowsRef.current = [...DEFAULT_UAV_FREQUENCY_ROWS];
-        setRows([...DEFAULT_UAV_FREQUENCY_ROWS]);
-        setSaveState("error");
-        setErrorMessage("Could not load the shared table. Showing defaults.");
-      } finally {
-        skipSaveRef.current = true;
-        setReady(true);
-      }
-    }
-
-    void loadRows();
+    void loadTable();
   }, []);
 
-  useEffect(() => {
-    if (!ready || skipSaveRef.current) {
-      skipSaveRef.current = false;
-      return;
-    }
+  function startEdit() {
+    setDraft(published.map((row) => ({ ...row })));
+    setMode("edit");
+    setMessage("");
+    setError("");
+  }
 
-    if (!canEdit) return;
-
-    rowsRef.current = rows;
-
-    if (saveTimerRef.current !== null) {
-      window.clearTimeout(saveTimerRef.current);
-    }
-
-    saveTimerRef.current = window.setTimeout(() => {
-      void persistRows(rows);
-    }, SAVE_DEBOUNCE_MS);
-
-    return () => {
-      if (saveTimerRef.current !== null) {
-        window.clearTimeout(saveTimerRef.current);
-      }
-    };
-  }, [rows, ready, canEdit, persistRows]);
+  function cancelEdit() {
+    setDraft(published.map((row) => ({ ...row })));
+    setMode("view");
+    setNote("");
+    setMessage("");
+    setError("");
+  }
 
   function updateRow(key: string, field: EditableField, value: string) {
-    if (!canEdit) return;
-    setRows((prev) =>
+    setDraft((prev) =>
       prev.map((row) => (row.key === key ? { ...row, [field]: value } : row)),
     );
   }
 
   function addRow() {
-    if (!canEdit) return;
-    setRows((prev) => [...prev, createEmptyRow()]);
+    setDraft((prev) => [...prev, createEmptyRow()]);
   }
 
   function removeRow(key: string) {
-    if (!canEdit) return;
-    setRows((prev) => prev.filter((row) => row.key !== key));
+    setDraft((prev) => prev.filter((row) => row.key !== key));
   }
 
-  async function resetDefaults() {
-    if (!canEdit) return;
-    if (
-      !window.confirm(
-        "Reset the shared table to the original values for everyone?",
-      )
-    ) {
-      return;
-    }
-
-    const user = loadUser();
-    if (!user) return;
-
-    setSaveState("saving");
-    setErrorMessage("");
+  async function submitProposal() {
+    if (!user || !dirty) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
 
     try {
-      const res = await fetch("/api/uav-frequency", {
-        method: "DELETE",
+      const res = await fetch("/api/uav-frequency/proposals", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employeeEmail: user.email }),
+        body: JSON.stringify({
+          action: "propose",
+          employeeName: user.name,
+          employeeEmail: user.email,
+          rows: draft,
+          note,
+        }),
       });
-
       const data = (await res.json()) as {
         error?: string;
-        rows?: UavFrequencyRow[];
+        proposal?: UavFrequencyProposal;
       };
 
       if (!res.ok) {
-        setSaveState("error");
-        setErrorMessage(data.error ?? "Could not reset the shared table.");
+        setError(data.error ?? "Could not submit proposal.");
         return;
       }
 
-      const nextRows = data.rows ?? [...DEFAULT_UAV_FREQUENCY_ROWS];
-      skipSaveRef.current = true;
-      rowsRef.current = nextRows;
-      setRows(nextRows);
-      setSaveState("saved");
-      window.setTimeout(() => setSaveState("idle"), 1800);
+      setMode("view");
+      setDraft(published.map((row) => ({ ...row })));
+      setNote("");
+      setMessage("Submitted for approval. You’ll see it live after review.");
+      await loadTable();
     } catch {
-      setSaveState("error");
-      setErrorMessage("Network error while resetting. Check your connection.");
+      setError("Network error while submitting. Try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
-  const statusText =
-    saveState === "saving"
-      ? "Saving for everyone…"
-      : saveState === "saved"
-        ? "Saved — shared with the team"
-        : canEdit
-          ? "Edits save automatically for everyone"
-          : "View only — sign in from the checklist to edit";
+  async function reviewProposal(
+    proposalId: string,
+    action: "approve" | "reject",
+  ) {
+    if (!user || !isAdmin) return;
+    setBusy(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/uav-frequency/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          proposalId,
+          employeeEmail: user.email,
+        }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        rows?: UavFrequencyRow[];
+        pending?: UavFrequencyProposal[];
+      };
+
+      if (!res.ok) {
+        setError(data.error ?? `Could not ${action} proposal.`);
+        return;
+      }
+
+      if (data.rows) {
+        setPublished(data.rows);
+        if (mode === "view") setDraft(data.rows);
+      }
+      setPending(data.pending ?? []);
+      setMessage(
+        action === "approve"
+          ? "Approved — table updated for everyone."
+          : "Proposal rejected.",
+      );
+    } catch {
+      setError("Network error while reviewing. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const displayRows = mode === "edit" ? draft : published;
 
   if (!ready) {
     return (
@@ -210,131 +203,257 @@ export function UavFrequencyTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      {!canEdit && (
-        <div className="rounded-lg border border-brand-orange/40 bg-brand-orange/10 px-4 py-3 text-sm text-white">
-          This table is shared for the whole team.{" "}
+      {!canPropose && (
+        <div className="rounded-xl border border-brand-orange/35 bg-brand-orange/10 px-4 py-3 text-sm leading-relaxed text-white">
+          View only.{" "}
           <Link href="/" className="font-semibold text-brand-orange underline">
-            Sign in on the checklist page
+            Sign in on the checklist
           </Link>{" "}
-          to edit it.
+          to propose changes for approval.
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={addRow}
-          disabled={!canEdit || saveState === "saving"}
-          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-white disabled:opacity-50"
-        >
-          Add row
-        </button>
-        <button
-          type="button"
-          onClick={() => void resetDefaults()}
-          disabled={!canEdit || saveState === "saving"}
-          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-muted hover:text-white disabled:opacity-50"
-        >
-          Reset to default
-        </button>
+      {canPropose && mode === "view" && (
+        <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
+          Edits go to approval first — they appear for everyone only after an
+          admin approves.
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        {canPropose && mode === "view" && (
+          <button
+            type="button"
+            onClick={startEdit}
+            disabled={busy}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-orange px-4 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            Propose changes
+          </button>
+        )}
+        {mode === "edit" && (
+          <>
+            <button
+              type="button"
+              onClick={addRow}
+              disabled={busy}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-white disabled:opacity-50"
+            >
+              Add row
+            </button>
+            <button
+              type="button"
+              onClick={cancelEdit}
+              disabled={busy}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-medium text-muted disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </>
+        )}
         <Link
           href="/"
-          className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand-orange px-4 text-sm font-semibold text-white sm:ml-auto"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-white sm:ml-auto"
         >
           Back to checklist
         </Link>
-        <p
-          className={`w-full text-xs sm:w-auto sm:ml-auto ${
-            saveState === "saved"
-              ? "text-emerald-400"
-              : saveState === "error"
-                ? "text-red-300"
-                : "text-muted"
-          }`}
-          aria-live="polite"
-        >
-          {errorMessage || statusText}
-        </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border-2 border-black/80 bg-white shadow-lg">
-        <table className="min-w-[640px] w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-[#1c4587] text-left text-white">
-              <th className="border border-black/80 px-3 py-2.5 font-bold">ID</th>
-              <th className="border border-black/80 px-3 py-2.5 font-bold">UAV</th>
-              <th className="border border-black/80 px-3 py-2.5 font-bold">
-                Frequency
-              </th>
-              <th className="border border-black/80 px-3 py-2.5 font-bold">
-                Location
-              </th>
-              {canEdit && (
-                <th className="border border-black/80 px-2 py-2.5 font-bold w-12">
-                  <span className="sr-only">Remove row</span>
-                </th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const band = frequencyBand(row.frequency);
-              const rowClass = bandRowClass(band);
-              return (
-                <tr key={row.key} className={rowClass}>
-                  {(["id", "uav", "frequency", "location"] as const).map(
-                    (field) => (
-                      <td
-                        key={field}
-                        className="border border-black/80 px-2 py-1.5 align-top"
-                      >
-                        {canEdit ? (
-                          <input
-                            type="text"
-                            value={row[field]}
-                            onChange={(e) =>
-                              updateRow(row.key, field, e.target.value)
-                            }
-                            aria-label={`${field} for row ${row.id || row.key}`}
-                            className={cellInputClass}
-                          />
-                        ) : (
-                          <span className="block px-1 py-1.5">{row[field] || "—"}</span>
-                        )}
-                      </td>
+      {mode === "edit" && (
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4">
+          <label className="flex flex-col gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted">
+              Note for approver (optional)
+            </span>
+            <textarea
+              rows={2}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="What did you change and why?"
+              className="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-white outline-none ring-brand-orange focus:ring-2"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => void submitProposal()}
+            disabled={busy || !dirty}
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-brand-orange px-4 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? "Submitting…" : "Submit for approval"}
+          </button>
+          {!dirty && (
+            <p className="text-center text-xs text-muted">
+              Make at least one change before submitting.
+            </p>
+          )}
+        </div>
+      )}
+
+      {(message || error) && (
+        <p
+          role="status"
+          className={`rounded-lg px-4 py-3 text-center text-sm ${
+            error
+              ? "border border-red-500/40 bg-red-950/40 text-red-200"
+              : "border border-emerald-500/30 bg-emerald-950/30 text-emerald-200"
+          }`}
+        >
+          {error || message}
+        </p>
+      )}
+
+      {isAdmin && pending.length > 0 && (
+        <section className="flex flex-col gap-3 rounded-xl border border-brand-orange/40 bg-surface p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-orange">
+            Pending approvals ({pending.length})
+          </h2>
+          {pending.map((proposal) => {
+            const changes = summarizeRowDiff(published, proposal.rows);
+            return (
+              <article
+                key={proposal.id}
+                className="rounded-lg border border-border bg-surface-elevated p-3"
+              >
+                <p className="text-sm text-white">
+                  <span className="font-semibold">{proposal.proposedByName}</span>
+                  <span className="text-muted">
+                    {" "}
+                    · {proposal.proposedByEmail}
+                  </span>
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  {new Date(proposal.createdAtIso).toLocaleString("en-GB", {
+                    timeZone: "Asia/Dubai",
+                  })}{" "}
+                  (UAE)
+                </p>
+                {proposal.note && (
+                  <p className="mt-2 text-sm text-muted">“{proposal.note}”</p>
+                )}
+                <ul className="mt-2 space-y-1 text-xs text-muted">
+                  {(changes.length ? changes : ["Full table update"]).map(
+                    (line) => (
+                      <li key={line}>• {line}</li>
                     ),
                   )}
-                  {canEdit && (
-                    <td className="border border-black/80 px-1 py-1.5 text-center align-middle">
-                      <button
-                        type="button"
-                        onClick={() => removeRow(row.key)}
-                        aria-label={`Remove row ${row.id || row.key}`}
-                        className="rounded px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
-                      >
-                        ✕
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                </ul>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void reviewProposal(proposal.id, "approve")}
+                    className="min-h-11 rounded-lg bg-emerald-600 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void reviewProposal(proposal.id, "reject")}
+                    className="min-h-11 rounded-lg border border-red-400/50 text-sm font-semibold text-red-300 disabled:opacity-50"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+      )}
+
+      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="inline-block min-w-full overflow-hidden rounded-xl border border-border bg-white shadow-md sm:min-w-0 sm:w-full">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-[16%]" />
+              <col className="w-[28%]" />
+              <col className="w-[22%]" />
+              <col className="w-[26%]" />
+              {mode === "edit" && <col className="w-[8%]" />}
+            </colgroup>
+            <thead>
+              <tr className="bg-slate-800 text-white">
+                {["ID", "UAV", "Freq", "Location"].map((label) => (
+                  <th
+                    key={label}
+                    className="border-b border-white/10 px-1.5 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide sm:text-xs"
+                  >
+                    {label}
+                  </th>
+                ))}
+                {mode === "edit" && (
+                  <th className="border-b border-white/10 px-1 py-2.5">
+                    <span className="sr-only">Remove</span>
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {displayRows.map((row) => {
+                const band = frequencyBand(row.frequency);
+                return (
+                  <tr key={row.key} className={bandRowClass(band)}>
+                    {(["id", "uav", "frequency", "location"] as const).map(
+                      (field) => (
+                        <td
+                          key={field}
+                          className="border-b border-black/5 px-1 py-1 text-center align-middle"
+                        >
+                          {mode === "edit" ? (
+                            <input
+                              type="text"
+                              inputMode={
+                                field === "frequency" || field === "id"
+                                  ? "text"
+                                  : "text"
+                              }
+                              value={row[field]}
+                              onChange={(e) =>
+                                updateRow(row.key, field, e.target.value)
+                              }
+                              aria-label={`${field} for row ${row.id || row.key}`}
+                              className={cellInputClass}
+                            />
+                          ) : (
+                            <span className="block break-words px-0.5 py-2 text-center text-[13px] leading-snug sm:text-sm">
+                              {row[field] || "—"}
+                            </span>
+                          )}
+                        </td>
+                      ),
+                    )}
+                    {mode === "edit" && (
+                      <td className="border-b border-black/5 px-0.5 py-1 text-center align-middle">
+                        <button
+                          type="button"
+                          onClick={() => removeRow(row.key)}
+                          aria-label={`Remove row ${row.id || row.key}`}
+                          className="size-8 rounded-md text-red-700 hover:bg-red-100"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 text-xs text-muted">
-        <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm bg-[#d9ead3] ring-1 ring-black/20" />
-          433.1 MHz
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-full bg-emerald-300" />
+          433.1
         </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm bg-[#fff2cc] ring-1 ring-black/20" />
-          433.9 MHz
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-full bg-amber-300" />
+          433.9
         </span>
-        <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm bg-[#efefef] ring-1 ring-black/20" />
-          434.75 MHz
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2.5 rounded-full bg-slate-300" />
+          434.75
         </span>
       </div>
     </div>

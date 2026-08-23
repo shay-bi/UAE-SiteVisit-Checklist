@@ -8,6 +8,20 @@ export type UavFrequencyRow = {
 
 export type FrequencyBand = "433.1" | "433.9" | "434.75" | "other";
 
+export type UavFrequencyProposalStatus = "pending" | "approved" | "rejected";
+
+export type UavFrequencyProposal = {
+  id: string;
+  status: UavFrequencyProposalStatus;
+  rows: UavFrequencyRow[];
+  proposedByName: string;
+  proposedByEmail: string;
+  note: string;
+  createdAtIso: string;
+  reviewedAtIso?: string;
+  reviewedByEmail?: string;
+};
+
 export const DEFAULT_UAV_FREQUENCY_ROWS: UavFrequencyRow[] = [
   { key: "r1", id: "1", uav: "NONE", frequency: "433.1", location: "HOME" },
   { key: "r2", id: "2", uav: "322, 423", frequency: "433.1", location: "204, 209" },
@@ -36,16 +50,17 @@ export function frequencyBand(frequency: string): FrequencyBand {
   return "other";
 }
 
+/** Soft, readable band colors for mobile. */
 export function bandRowClass(band: FrequencyBand): string {
   switch (band) {
     case "433.1":
-      return "bg-[#d9ead3] text-[#1a1a1a]";
+      return "bg-emerald-100/90 text-emerald-950";
     case "433.9":
-      return "bg-[#fff2cc] text-[#1a1a1a]";
+      return "bg-amber-100/90 text-amber-950";
     case "434.75":
-      return "bg-[#efefef] text-[#1a1a1a]";
+      return "bg-slate-200/90 text-slate-900";
     default:
-      return "bg-white text-[#1a1a1a]";
+      return "bg-white text-slate-900";
   }
 }
 
@@ -61,7 +76,9 @@ function isValidRow(value: unknown): value is UavFrequencyRow {
   );
 }
 
-export function isValidUavFrequencyRows(value: unknown): value is UavFrequencyRow[] {
+export function isValidUavFrequencyRows(
+  value: unknown,
+): value is UavFrequencyRow[] {
   return Array.isArray(value) && value.every(isValidRow);
 }
 
@@ -73,4 +90,54 @@ export function createEmptyRow(): UavFrequencyRow {
     frequency: "",
     location: "",
   };
+}
+
+export function rowsEqual(
+  a: UavFrequencyRow[],
+  b: UavFrequencyRow[],
+): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(
+    (row, i) =>
+      row.key === b[i]?.key &&
+      row.id === b[i]?.id &&
+      row.uav === b[i]?.uav &&
+      row.frequency === b[i]?.frequency &&
+      row.location === b[i]?.location,
+  );
+}
+
+export function summarizeRowDiff(
+  published: UavFrequencyRow[],
+  proposed: UavFrequencyRow[],
+): string[] {
+  const changes: string[] = [];
+  const publishedByKey = new Map(published.map((r) => [r.key, r]));
+  const proposedKeys = new Set(proposed.map((r) => r.key));
+
+  for (const row of proposed) {
+    const prev = publishedByKey.get(row.key);
+    if (!prev) {
+      changes.push(`Added row ${row.id || "(blank)"}: UAV ${row.uav || "—"}, ${row.frequency || "—"}, ${row.location || "—"}`);
+      continue;
+    }
+    const parts: string[] = [];
+    if (prev.id !== row.id) parts.push(`ID ${prev.id || "—"} → ${row.id || "—"}`);
+    if (prev.uav !== row.uav) parts.push(`UAV ${prev.uav || "—"} → ${row.uav || "—"}`);
+    if (prev.frequency !== row.frequency)
+      parts.push(`Freq ${prev.frequency || "—"} → ${row.frequency || "—"}`);
+    if (prev.location !== row.location)
+      parts.push(`Loc ${prev.location || "—"} → ${row.location || "—"}`);
+    if (parts.length) {
+      changes.push(`Updated ${row.id || row.key}: ${parts.join("; ")}`);
+    }
+  }
+
+  for (const row of published) {
+    if (!proposedKeys.has(row.key)) {
+      changes.push(`Removed row ${row.id || row.key}`);
+    }
+  }
+
+  return changes;
 }
