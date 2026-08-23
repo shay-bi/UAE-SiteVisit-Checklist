@@ -86,27 +86,25 @@ function renderChecklistHtml(checked: Set<string>): string {
       if (!checked.has(item.id)) continue;
 
       if (item.bullets?.length) {
-        const bulletRows = item.bullets
+        const bulletList = item.bullets
           .map(
             (bullet) => `
-              <tr>
-                <td style="padding:4px 0 4px 28px;font-size:14px;line-height:1.45;color:#374151;vertical-align:top">
-                  <span style="color:#9ca3af;margin-right:8px">&#8226;</span>${escapeHtml(bullet)}
-                </td>
-              </tr>`,
+              <p style="margin:0 0 6px;padding:0;font-size:14px;line-height:1.5;color:#374151">
+                <span style="color:#9ca3af;margin-right:8px">&#8226;</span>${escapeHtml(bullet)}
+              </p>`,
           )
           .join("");
 
         rows.push(`
           <tr>
-            <td style="padding:10px 0 4px;vertical-align:top;width:24px">
+            <td style="padding:10px 0;vertical-align:top;width:24px">
               <span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#16a34a;color:#ffffff;font-size:12px;font-weight:700">&#10003;</span>
             </td>
-            <td style="padding:10px 0 4px;font-size:14px;font-weight:600;color:#111827;vertical-align:top">
-              Completed
+            <td style="padding:10px 0;vertical-align:top">
+              <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#111827">Completed</p>
+              ${bulletList}
             </td>
-          </tr>
-          ${bulletRows}`);
+          </tr>`);
       } else {
         rows.push(`
           <tr>
