@@ -25,6 +25,8 @@ export type SubmitPayload = {
   employeeEmail: string;
   siteLocation: string;
   checkedItemIds: string[];
+  /** ISO timestamps for when each checked item was marked. */
+  checkedAtByItemId: Record<string, string>;
   notes: string;
   flightPricelist?: string;
 };

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import type { StoredReport } from "@/lib/report";
+import { formatUaeTime } from "@/lib/uae-time";
 
 const fieldClass =
   "min-h-12 rounded-lg border border-border bg-surface-elevated px-4 text-base text-white placeholder:text-muted/70 outline-none ring-brand-orange focus:ring-2";
@@ -240,9 +241,19 @@ export function AdminPanel() {
               <dt className="text-muted">Safety checklist</dt>
               <dd>
                 <ul className="mt-1 list-disc space-y-1 pl-5 text-white">
-                  {selected.checkedLabels.map((label) => (
-                    <li key={label}>{label}</li>
-                  ))}
+                  {selected.checkedItemIds.map((id, index) => {
+                    const label = selected.checkedLabels[index] ?? id;
+                    const at = selected.checkedAtByItemId?.[id];
+                    const time = at ? formatUaeTime(at) : "";
+                    return (
+                      <li key={id}>
+                        {label}
+                        {time ? (
+                          <span className="ml-2 text-xs text-muted">{time}</span>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               </dd>
             </div>

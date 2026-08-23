@@ -5,6 +5,8 @@
 export type FormDraft = {
   siteLocation: string;
   checked: Record<string, boolean>;
+  /** ISO timestamps for when each checked item was marked. */
+  checkedAt: Record<string, string>;
   notes: string;
   flightPricelist: string;
 };
@@ -16,7 +18,13 @@ function draftKey(email: string): string {
 }
 
 export function emptyFormDraft(): FormDraft {
-  return { siteLocation: "", checked: {}, notes: "", flightPricelist: "" };
+  return {
+    siteLocation: "",
+    checked: {},
+    checkedAt: {},
+    notes: "",
+    flightPricelist: "",
+  };
 }
 
 export function loadFormDraft(email: string): FormDraft {
@@ -31,6 +39,10 @@ export function loadFormDraft(email: string): FormDraft {
       checked:
         parsed.checked && typeof parsed.checked === "object"
           ? (parsed.checked as Record<string, boolean>)
+          : {},
+      checkedAt:
+        parsed.checkedAt && typeof parsed.checkedAt === "object"
+          ? (parsed.checkedAt as Record<string, string>)
           : {},
       notes: typeof parsed.notes === "string" ? parsed.notes : "",
       flightPricelist:

@@ -1,11 +1,13 @@
 import { SAFETY_CHECKLIST, findItemLabel } from "@/lib/checklist";
 import type { ChecklistGroup, ChecklistItem } from "@/lib/types";
+import { formatUaeTime } from "@/lib/uae-time";
 
 export type SubmissionEmailInput = {
   employeeName: string;
   employeeEmail: string;
   siteLocation: string;
   checkedItemIds: string[];
+  checkedAtByItemId?: Record<string, string>;
   notes: string;
   flightPricelist?: string;
   submittedAt: string;
@@ -42,7 +44,23 @@ function groupHasCheckedItems(
   return group.items.some((item) => checked.has(item.id));
 }
 
-function renderChecklistText(checked: Set<string>): string[] {
+function timeBadge(iso: string | undefined): string {
+  if (!iso) return "";
+  const time = formatUaeTime(iso);
+  return time ? ` · ${time}` : "";
+}
+
+function timeBadgeHtml(iso: string | undefined): string {
+  if (!iso) return "";
+  const time = formatUaeTime(iso);
+  if (!time) return "";
+  return `<span style="display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;background:#e5e7eb;font-size:11px;font-weight:700;letter-spacing:0.02em;color:#4b5563;white-space:nowrap">${escapeHtml(time)}</span>`;
+}
+
+function renderChecklistText(
+  checked: Set<string>,
+  checkedAtByItemId: Record<string, string>,
+): string[] {
   const lines: string[] = [];
 
   for (const group of SAFETY_CHECKLIST) {
@@ -54,13 +72,14 @@ function renderChecklistText(checked: Set<string>): string[] {
     for (const item of group.items) {
       if (!checked.has(item.id)) continue;
       const label = itemPlainLabel(item);
+      const when = timeBadge(checkedAtByItemId[item.id]);
       if (item.bullets?.length) {
-        lines.push(`  [x] ${group.title}`);
+        lines.push(`  [x] ${group.title}${when}`);
         for (const bullet of item.bullets) {
           lines.push(`      - ${bullet}`);
         }
       } else {
-        lines.push(`  [x] ${label}`);
+        lines.push(`  [x] ${label}${when}`);
       }
     }
     lines.push("");
@@ -69,7 +88,10 @@ function renderChecklistText(checked: Set<string>): string[] {
   return lines;
 }
 
-function renderChecklistHtml(checked: Set<string>): string {
+function renderChecklistHtml(
+  checked: Set<string>,
+  checkedAtByItemId: Record<string, string>,
+): string {
   const sections: string[] = [];
 
   for (const group of SAFETY_CHECKLIST) {
@@ -85,6 +107,7 @@ function renderChecklistHtml(checked: Set<string>): string {
     const rows: string[] = [];
     for (const item of group.items) {
       if (!checked.has(item.id)) continue;
+      const whenHtml = timeBadgeHtml(checkedAtByItemId[item.id]);
 
       if (item.bullets?.length) {
         const bulletList = item.bullets
@@ -102,7 +125,9 @@ function renderChecklistHtml(checked: Set<string>): string {
               <span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#16a34a;color:#ffffff;font-size:12px;font-weight:700">&#10003;</span>
             </td>
             <td style="padding:10px 0;vertical-align:top">
-              <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#111827">Completed</p>
+              <p style="margin:0 0 8px;font-size:14px;font-weight:600;color:#111827">
+                Completed${whenHtml}
+              </p>
               ${bulletList}
             </td>
           </tr>`);
@@ -113,7 +138,7 @@ function renderChecklistHtml(checked: Set<string>): string {
               <span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#16a34a;color:#ffffff;font-size:12px;font-weight:700">&#10003;</span>
             </td>
             <td style="padding:8px 0;font-size:14px;line-height:1.45;color:#111827;vertical-align:top">
-              ${escapeHtml(itemPlainLabel(item))}
+              ${escapeHtml(itemPlainLabel(item))}${whenHtml}
             </td>
           </tr>`);
       }
@@ -151,6 +176,7 @@ export function buildSubmissionEmail(
     employeeEmail,
     siteLocation,
     checkedItemIds,
+    checkedAtByItemId = {},
     notes,
     flightPricelist = "",
     submittedAt,
@@ -175,9 +201,9 @@ export function buildSubmissionEmail(
     flightIncluded ? "Flight:      Yes" : "",
     flightPricelist ? `Pricelist:   ${flightPricelist}` : "",
     "",
-    "CHECKLIST",
-    "---------",
-    ...renderChecklistText(checked),
+    "CHECKLIST (times in UAE)",
+    "------------------------",
+    ...renderChecklistText(checked, checkedAtByItemId),
     "NOTES",
     "-----",
     notes.trim() || "(none)",
@@ -292,7 +318,7 @@ export function buildSubmissionEmail(
               <h2 style="margin:0 0 12px;font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6b7280">
                 Safety checklist
               </h2>
-              ${renderChecklistHtml(checked)}
+              ${renderChecklistHtml(checked, checkedAtByItemId)}
             </td>
           </tr>
 

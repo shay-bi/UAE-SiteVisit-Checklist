@@ -17,6 +17,7 @@ import {
 } from "@/lib/submit-rate-limit";
 import { buildSubmissionEmail } from "@/lib/submission-email";
 import type { SubmitPayload } from "@/lib/types";
+import { isValidIsoTimestamp } from "@/lib/uae-time";
 
 function isValidPayload(body: unknown): body is SubmitPayload {
   if (!body || typeof body !== "object") return false;
@@ -35,6 +36,18 @@ function isValidPayload(body: unknown): body is SubmitPayload {
   const requiredIds = requiredChecklistItemIds(checkedIds);
   if (requiredIds.length === 0 || requiredIds.some((id) => !checked.has(id))) {
     return false;
+  }
+
+  if (
+    !b.checkedAtByItemId ||
+    typeof b.checkedAtByItemId !== "object" ||
+    Array.isArray(b.checkedAtByItemId)
+  ) {
+    return false;
+  }
+  const checkedAt = b.checkedAtByItemId as Record<string, unknown>;
+  for (const id of checkedIds) {
+    if (!isValidIsoTimestamp(checkedAt[id])) return false;
   }
 
   const flightPricelist =
@@ -103,12 +116,14 @@ export async function POST(request: Request) {
   });
 
   const checkedItemIds = body.checkedItemIds;
+  const checkedAtByItemId = body.checkedAtByItemId;
 
   const { subject, text, html } = buildSubmissionEmail({
     employeeName,
     employeeEmail,
     siteLocation,
     checkedItemIds,
+    checkedAtByItemId,
     notes,
     flightPricelist,
     submittedAt,
@@ -149,6 +164,7 @@ export async function POST(request: Request) {
     siteLocation,
     checkedItemIds,
     checkedLabels: checkedItemIds.map((id) => findItemLabel(id)),
+    checkedAtByItemId,
     notes,
     flightPricelist: flightPricelist || undefined,
     submittedAtIso: new Date().toISOString(),

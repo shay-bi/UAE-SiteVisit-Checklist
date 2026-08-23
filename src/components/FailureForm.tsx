@@ -88,6 +88,7 @@ export function FailureForm({ user }: FailureFormProps) {
   const [ready, setReady] = useState(false);
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [checkedAt, setCheckedAt] = useState<Record<string, string>>({});
   const [notes, setNotes] = useState("");
   const [flightPricelist, setFlightPricelist] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -100,6 +101,7 @@ export function FailureForm({ user }: FailureFormProps) {
   const draftRef = useRef<FormDraft>({
     siteLocation: "",
     checked: {},
+    checkedAt: {},
     notes: "",
     flightPricelist: "",
   });
@@ -119,6 +121,7 @@ export function FailureForm({ user }: FailureFormProps) {
       : "";
     setSiteLocation(station);
     setChecked(draft.checked);
+    setCheckedAt(draft.checkedAt ?? {});
     setNotes(draft.notes);
     const pricelist = isValidFlightPricelist(draft.flightPricelist)
       ? draft.flightPricelist.trim()
@@ -175,12 +178,22 @@ export function FailureForm({ user }: FailureFormProps) {
 
   function toggleItem(id: string) {
     setChecked((prev) => {
-      const nextChecked = { ...prev, [id]: !prev[id] };
+      const nextOn = !prev[id];
+      const nextChecked = { ...prev, [id]: nextOn };
+      const nextCheckedAt = { ...(draftRef.current.checkedAt ?? {}) };
+      if (nextOn) {
+        nextCheckedAt[id] = new Date().toISOString();
+      } else {
+        delete nextCheckedAt[id];
+      }
+      setCheckedAt(nextCheckedAt);
+
       const nextDraft: FormDraft = {
         ...draftRef.current,
         checked: nextChecked,
+        checkedAt: nextCheckedAt,
       };
-      if (id === FLIGHT_GATE_ITEM_ID && !nextChecked[id]) {
+      if (id === FLIGHT_GATE_ITEM_ID && !nextOn) {
         setFlightPricelist("");
         nextDraft.flightPricelist = "";
       }
@@ -219,6 +232,11 @@ export function FailureForm({ user }: FailureFormProps) {
     const checkedItemIds = SAFETY_CHECKLIST.flatMap((g) =>
       g.items.map((i) => i.id).filter((id) => checked[id]),
     );
+    const nowIso = new Date().toISOString();
+    const checkedAtByItemId: Record<string, string> = {};
+    for (const id of checkedItemIds) {
+      checkedAtByItemId[id] = checkedAt[id] || nowIso;
+    }
 
     try {
       const res = await fetch("/api/submit", {
@@ -229,6 +247,7 @@ export function FailureForm({ user }: FailureFormProps) {
           employeeEmail: user.email,
           siteLocation: siteLocation.trim(),
           checkedItemIds,
+          checkedAtByItemId,
           notes: notes.trim(),
           flightPricelist: flightActive ? flightPricelist.trim() : "",
         }),
@@ -247,12 +266,14 @@ export function FailureForm({ user }: FailureFormProps) {
       draftRef.current = {
         siteLocation: "",
         checked: {},
+        checkedAt: {},
         notes: "",
         flightPricelist: "",
       };
       setStatus("success");
       setSiteLocation("");
       setChecked({});
+      setCheckedAt({});
       setNotes("");
       setFlightPricelist("");
     } catch {
