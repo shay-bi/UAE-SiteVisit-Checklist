@@ -8,8 +8,6 @@ export type UavFrequencyRow = {
 
 export type FrequencyBand = "433.1" | "433.9" | "434.75" | "other";
 
-const STORAGE_KEY = "airobotics-uav-frequency-table";
-
 export const DEFAULT_UAV_FREQUENCY_ROWS: UavFrequencyRow[] = [
   { key: "r1", id: "1", uav: "NONE", frequency: "433.1", location: "HOME" },
   { key: "r2", id: "2", uav: "322, 423", frequency: "433.1", location: "204, 209" },
@@ -63,28 +61,8 @@ function isValidRow(value: unknown): value is UavFrequencyRow {
   );
 }
 
-export function loadUavFrequencyRows(): UavFrequencyRow[] {
-  if (typeof window === "undefined") return [...DEFAULT_UAV_FREQUENCY_ROWS];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [...DEFAULT_UAV_FREQUENCY_ROWS];
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed) || !parsed.every(isValidRow)) {
-      return [...DEFAULT_UAV_FREQUENCY_ROWS];
-    }
-    return parsed;
-  } catch {
-    return [...DEFAULT_UAV_FREQUENCY_ROWS];
-  }
-}
-
-export function saveUavFrequencyRows(rows: UavFrequencyRow[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
-  } catch {
-    // Ignore quota / private mode failures.
-  }
+export function isValidUavFrequencyRows(value: unknown): value is UavFrequencyRow[] {
+  return Array.isArray(value) && value.every(isValidRow);
 }
 
 export function createEmptyRow(): UavFrequencyRow {

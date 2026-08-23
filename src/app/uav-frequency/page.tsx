@@ -13,8 +13,8 @@ export default function UavFrequencyPage() {
       <header className="mb-4">
         <h1 className="text-2xl font-semibold text-white">UAV Frequency Table</h1>
         <p className="mt-1 text-sm text-muted">
-          Reference table for UAV IDs, frequencies, and locations. Tap any cell to
-          edit — changes save on this device.
+          Shared reference table for UAV IDs, frequencies, and locations. Sign in
+          from the checklist to edit — changes sync for the whole team.
         </p>
       </header>
 
