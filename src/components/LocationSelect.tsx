@@ -133,7 +133,7 @@ export function LocationSelect({
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => setOpen((prev) => !prev)}
-        className="flex min-h-9 w-full items-center justify-center rounded-md border border-black/10 bg-white/80 px-1.5 py-1.5 text-center text-[12px] leading-tight text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1 sm:text-sm"
+        className="flex min-h-9 w-full items-center justify-center rounded-md border border-black/10 bg-white/80 px-1.5 py-1.5 text-center text-[12px] font-bold leading-tight text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1 sm:text-sm"
       >
         <span className="line-clamp-2 break-words">{label}</span>
       </button>

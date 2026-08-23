@@ -21,7 +21,7 @@ type EditableField = keyof Pick<UavFrequencyRow, "id" | "uav" | "frequency">;
 type Mode = "view" | "edit";
 
 const cellInputClass =
-  "w-full min-w-0 rounded-md border border-black/10 bg-white/80 px-1.5 py-2 text-center text-sm text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1";
+  "w-full min-w-0 rounded-md border border-black/10 bg-white/80 px-1.5 py-2 text-center text-sm font-bold text-inherit outline-none ring-brand-orange focus:border-brand-orange focus:bg-white focus:ring-1";
 
 function migrateRows(rows: UavFrequencyRow[]): UavFrequencyRow[] {
   return rows.map((row) => ({
@@ -357,7 +357,7 @@ export function UavFrequencyTable() {
             mode === "edit" ? "overflow-visible" : "overflow-hidden"
           }`}
         >
-          <table className="w-full table-fixed border-collapse text-sm">
+          <table className="w-full table-fixed border-collapse text-sm font-bold">
             <colgroup>
               <col className="w-[16%]" />
               <col className="w-[28%]" />
@@ -370,7 +370,7 @@ export function UavFrequencyTable() {
                 {["ID", "UAV", "Freq", "Location"].map((label) => (
                   <th
                     key={label}
-                    className="border-b border-white/10 px-1.5 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wide sm:text-xs"
+                    className="border-b border-white/10 px-1.5 py-2.5 text-center text-[11px] font-bold uppercase tracking-wide sm:text-xs"
                   >
                     {label}
                   </th>
