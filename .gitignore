@@ -26,6 +26,7 @@
 
 # local report store
 /data/
+.firebase-service-account.json
 
 # debug
 npm-debug.log*

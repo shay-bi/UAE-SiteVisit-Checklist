@@ -27,16 +27,26 @@ Get the Resend key from [resend.com/api-keys](https://resend.com/api-keys).
 
 ### Firebase setup (Firestore)
 
-1. Create a project at [console.firebase.google.com](https://console.firebase.google.com).
-2. Enable **Firestore** (production mode).
+Project: **`uae-site-visit-checklist`** ([Firebase console](https://console.firebase.google.com/project/uae-site-visit-checklist/overview))
+
+Firestore is in **`me-central1`** (Middle East).
+
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com) — or use the existing `uae-site-visit-checklist` project.
+2. Enable **Firestore** if not already enabled.
 3. Go to **Project settings → Service accounts → Generate new private key**.
 4. Copy the JSON into `FIREBASE_SERVICE_ACCOUNT_JSON` in `.env.local` (single line).
 5. Deploy Firestore rules and indexes from this repo:
 
 ```bash
 npx firebase-tools login
-npx firebase-tools use your-firebase-project-id
+npx firebase-tools use uae-site-visit-checklist
 npx firebase-tools deploy --only firestore:rules,firestore:indexes
+```
+
+To verify local credentials:
+
+```bash
+node --env-file=.env.local --experimental-strip-types scripts/verify-firebase.mjs
 ```
 
 Firestore stores:

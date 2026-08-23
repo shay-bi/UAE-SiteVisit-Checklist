@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "your-firebase-project-id"
-  }
+    "default": "uae-site-visit-checklist"
+  },
+  "targets": {},
+  "etags": {}
 }
