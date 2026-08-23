@@ -16,7 +16,6 @@ export type UavFrequencyProposal = {
   rows: UavFrequencyRow[];
   proposedByName: string;
   proposedByEmail: string;
-  note: string;
   createdAtIso: string;
   reviewedAtIso?: string;
   reviewedByEmail?: string;

@@ -40,7 +40,6 @@ export async function POST(request: Request) {
     typeof record.employeeEmail === "string"
       ? record.employeeEmail.trim().toLowerCase()
       : "";
-  const note = typeof record.note === "string" ? record.note.trim() : "";
   const action = typeof record.action === "string" ? record.action : "propose";
 
   if (action === "propose") {
@@ -70,7 +69,6 @@ export async function POST(request: Request) {
       rows: record.rows,
       proposedByName: employeeName,
       proposedByEmail: employeeEmail,
-      note,
     });
 
     const changes = summarizeRowDiff(published, record.rows);

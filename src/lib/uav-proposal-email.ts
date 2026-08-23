@@ -37,21 +37,17 @@ export async function sendProposalNotificationEmail(input: {
     "",
     `From: ${proposal.proposedByName} <${proposal.proposedByEmail}>`,
     `When: ${proposal.createdAtIso}`,
-    proposal.note ? `Note: ${proposal.note}` : "",
     "",
     "Changes:",
     ...changeLines.map((line) => `- ${line}`),
     "",
     `Review: ${reviewUrl}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].join("\n");
 
   const html = `
     <div style="font-family:Segoe UI,Arial,sans-serif;line-height:1.5;color:#1a1a1a">
       <h1 style="font-size:18px;margin:0 0 12px">UAVs Lora IDs — approval needed</h1>
       <p style="margin:0 0 8px"><strong>From:</strong> ${escapeHtml(proposal.proposedByName)} &lt;${escapeHtml(proposal.proposedByEmail)}&gt;</p>
-      ${proposal.note ? `<p style="margin:0 0 8px"><strong>Note:</strong> ${escapeHtml(proposal.note)}</p>` : ""}
       <h2 style="font-size:14px;margin:16px 0 8px">Proposed changes</h2>
       <ul style="margin:0 0 16px;padding-left:20px">
         ${changeLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}

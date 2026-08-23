@@ -201,7 +201,6 @@ export async function createProposal(input: {
   rows: UavFrequencyRow[];
   proposedByName: string;
   proposedByEmail: string;
-  note?: string;
 }): Promise<UavFrequencyProposal> {
   const proposal: UavFrequencyProposal = {
     id: randomUUID(),
@@ -209,7 +208,6 @@ export async function createProposal(input: {
     rows: input.rows,
     proposedByName: input.proposedByName.trim(),
     proposedByEmail: input.proposedByEmail.trim().toLowerCase(),
-    note: (input.note ?? "").trim(),
     createdAtIso: new Date().toISOString(),
   };
 

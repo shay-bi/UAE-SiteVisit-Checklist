@@ -46,6 +46,11 @@ export function parseLocations(value: string): string[] {
 
 export function formatLocations(values: string[]): string {
   const unique = [...new Set(values.map((v) => v.trim()).filter(Boolean))];
+  unique.sort((a, b) => {
+    if (a === FACILITY_LOCATION) return -1;
+    if (b === FACILITY_LOCATION) return 1;
+    return Number(a) - Number(b);
+  });
   return unique.join(", ");
 }
 

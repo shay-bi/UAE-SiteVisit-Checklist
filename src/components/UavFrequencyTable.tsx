@@ -37,7 +37,6 @@ export function UavFrequencyTable() {
   const [mode, setMode] = useState<Mode>("view");
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<StoredUser | null>(null);
-  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -93,7 +92,6 @@ export function UavFrequencyTable() {
   function cancelEdit() {
     setDraft(published.map((row) => ({ ...row })));
     setMode("view");
-    setNote("");
     setMessage("");
     setError("");
   }
@@ -135,7 +133,6 @@ export function UavFrequencyTable() {
           employeeName: user.name,
           employeeEmail: user.email,
           rows: draft,
-          note,
         }),
       });
       const data = (await res.json()) as {
@@ -150,7 +147,6 @@ export function UavFrequencyTable() {
 
       setMode("view");
       setDraft(published.map((row) => ({ ...row })));
-      setNote("");
       setMessage("Submitted for approval. You’ll see it live after review.");
       await loadTable();
     } catch {
@@ -229,13 +225,6 @@ export function UavFrequencyTable() {
         </div>
       )}
 
-      {canPropose && mode === "view" && (
-        <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted">
-          Edits go to approval first — they appear for everyone only after an
-          admin approves.
-        </div>
-      )}
-
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         {canPropose && mode === "view" && (
           <button
@@ -277,18 +266,6 @@ export function UavFrequencyTable() {
 
       {mode === "edit" && (
         <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4">
-          <label className="flex flex-col gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted">
-              Note for approver (optional)
-            </span>
-            <textarea
-              rows={2}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="What did you change and why?"
-              className="rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-white outline-none ring-brand-orange focus:ring-2"
-            />
-          </label>
           <button
             type="button"
             onClick={() => void submitProposal()}
@@ -343,9 +320,6 @@ export function UavFrequencyTable() {
                   })}{" "}
                   (UAE)
                 </p>
-                {proposal.note && (
-                  <p className="mt-2 text-sm text-muted">“{proposal.note}”</p>
-                )}
                 <ul className="mt-2 space-y-1 text-xs text-muted">
                   {(changes.length ? changes : ["Full table update"]).map(
                     (line) => (
@@ -378,7 +352,11 @@ export function UavFrequencyTable() {
       )}
 
       <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="inline-block min-w-full overflow-hidden rounded-xl border border-border bg-white shadow-md sm:min-w-0 sm:w-full">
+        <div
+          className={`inline-block min-w-full rounded-xl border border-border bg-white shadow-md sm:min-w-0 sm:w-full ${
+            mode === "edit" ? "overflow-visible" : "overflow-hidden"
+          }`}
+        >
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col className="w-[16%]" />
