@@ -128,7 +128,7 @@ export async function POST(request: Request) {
     );
   }
 
-  recordSubmitRateLimit(employeeEmail);
+  await recordSubmitRateLimit(employeeEmail);
   await saveReport({
     id: randomUUID(),
     employeeName,

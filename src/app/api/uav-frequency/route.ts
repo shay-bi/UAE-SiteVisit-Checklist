@@ -46,7 +46,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Invalid table data." }, { status: 400 });
   }
 
-  await saveUavFrequencyRows(record.rows);
+  await saveUavFrequencyRows(record.rows, employeeEmail);
 
   return NextResponse.json({ ok: true, rows: record.rows });
 }

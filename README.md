@@ -10,14 +10,41 @@ Mobile-friendly form for Airobotics employees to submit a safety checklist once 
 npm install
 ```
 
-2. Create `.env.local` in the project root with:
+2. Create `.env.local` in the project root (see [`.env.example`](.env.example)):
 
 ```bash
 RESEND_API_KEY=re_your_key_here
 REPORT_TO_EMAIL=shaybit@airoboticsdrones.com
+ADMIN_EMAIL=shaybit@airoboticsdrones.com
+ADMIN_PASSWORD=your-admin-password
+ADMIN_SESSION_SECRET=long-random-string
+
+# Firebase — paste service account JSON (one line) from Firebase Console
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
 ```
 
-Get the key from [resend.com/api-keys](https://resend.com/api-keys).
+Get the Resend key from [resend.com/api-keys](https://resend.com/api-keys).
+
+### Firebase setup (Firestore)
+
+1. Create a project at [console.firebase.google.com](https://console.firebase.google.com).
+2. Enable **Firestore** (production mode).
+3. Go to **Project settings → Service accounts → Generate new private key**.
+4. Copy the JSON into `FIREBASE_SERVICE_ACCOUNT_JSON` in `.env.local` (single line).
+5. Deploy Firestore rules and indexes from this repo:
+
+```bash
+npx firebase-tools login
+npx firebase-tools use your-firebase-project-id
+npx firebase-tools deploy --only firestore:rules,firestore:indexes
+```
+
+Firestore stores:
+- **Site visit reports** (admin panel)
+- **UAV frequency table** (shared team edits)
+- **Submit rate limits** (1 per hour per email)
+
+Without Firebase env vars, the app falls back to local `data/` files (fine for local dev only; not reliable on Vercel).
 
 3. Run locally:
 
@@ -47,10 +74,8 @@ Open [http://localhost:3000/admin](http://localhost:3000/admin).
 
 Only `shaybit@airoboticsdrones.com` can sign in (set via `ADMIN_EMAIL`). Use the password from `ADMIN_PASSWORD` in `.env.local`.
 
-Submitted reports are saved locally in `data/reports.json` (gitignored) and listed in the admin panel. Email delivery still goes to Outlook as before.
+Submitted reports are stored in **Firestore** (when configured) and listed in the admin panel. Email delivery still goes to Outlook as before.
 
 ## Deploy
 
-Deploy to Vercel and add the same environment variables in the project settings (`RESEND_API_KEY`, `REPORT_TO_EMAIL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`).
-
-Note: the file-based report store works best on a single server / local machine. For multi-instance Vercel hosting, we should later move reports to a database.
+Deploy to Vercel and add the environment variables in the project settings (`RESEND_API_KEY`, `REPORT_TO_EMAIL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `FIREBASE_SERVICE_ACCOUNT_JSON`).

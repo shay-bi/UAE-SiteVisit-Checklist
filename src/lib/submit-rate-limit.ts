@@ -1,4 +1,6 @@
-import { listReports } from "@/lib/reports-store";
+import { FieldValue } from "firebase-admin/firestore";
+import { FIRESTORE, getDb } from "@/lib/firebase/admin";
+import { getLatestReportForEmail } from "@/lib/reports-store";
 
 export const SUBMIT_RATE_LIMIT_MS = 60 * 60 * 1000; // 1 hour per email
 
@@ -23,6 +25,37 @@ function remainingMs(lastSubmitMs: number, now: number): number {
   return SUBMIT_RATE_LIMIT_MS - (now - lastSubmitMs);
 }
 
+function rateLimitDocId(email: string): string {
+  return email.trim().toLowerCase().replace(/\//g, "_");
+}
+
+async function getLastSubmitMs(email: string): Promise<number | null> {
+  const normalized = email.trim().toLowerCase();
+  const db = getDb();
+
+  if (db) {
+    try {
+      const doc = await db
+        .collection(FIRESTORE.rateLimits)
+        .doc(rateLimitDocId(normalized))
+        .get();
+
+      if (doc.exists) {
+        const data = doc.data() as { lastSubmitIso?: string };
+        if (data.lastSubmitIso) {
+          return new Date(data.lastSubmitIso).getTime();
+        }
+      }
+    } catch (error) {
+      console.error("Firestore rate limit read failed, falling back:", error);
+    }
+  }
+
+  const latest = await getLatestReportForEmail(normalized);
+  if (!latest) return null;
+  return new Date(latest.submittedAtIso).getTime();
+}
+
 /** Returns true if this email submitted within the last hour. */
 export async function checkSubmitRateLimit(
   email: string,
@@ -41,15 +74,11 @@ export async function checkSubmitRateLimit(
     }
   }
 
-  const reports = await listReports();
-  const latest = reports.find(
-    (r) => r.employeeEmail.trim().toLowerCase() === normalized,
-  );
-  if (latest) {
-    const last = new Date(latest.submittedAtIso).getTime();
-    const remaining = remainingMs(last, now);
+  const lastSubmitMs = await getLastSubmitMs(normalized);
+  if (lastSubmitMs !== null) {
+    const remaining = remainingMs(lastSubmitMs, now);
     if (remaining > 0) {
-      lastSubmitMap().set(normalized, last);
+      lastSubmitMap().set(normalized, lastSubmitMs);
       return {
         limited: true,
         retryAfterSeconds: Math.ceil(remaining / 1000),
@@ -60,8 +89,22 @@ export async function checkSubmitRateLimit(
   return { limited: false };
 }
 
-export function recordSubmitRateLimit(email: string): void {
-  lastSubmitMap().set(email.trim().toLowerCase(), Date.now());
+export async function recordSubmitRateLimit(email: string): Promise<void> {
+  const normalized = email.trim().toLowerCase();
+  const nowIso = new Date().toISOString();
+  lastSubmitMap().set(normalized, Date.now());
+
+  const db = getDb();
+  if (!db) return;
+
+  try {
+    await db.collection(FIRESTORE.rateLimits).doc(rateLimitDocId(normalized)).set({
+      lastSubmitIso: nowIso,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Firestore rate limit write failed:", error);
+  }
 }
 
 export function formatRateLimitMessage(retryAfterSeconds: number): string {
