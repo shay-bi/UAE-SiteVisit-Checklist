@@ -102,6 +102,14 @@ function isItemChecked(checked: CheckedLookup | undefined, id: string): boolean 
   return Boolean((checked as Record<string, boolean>)[id]);
 }
 
+export const FLIGHT_GATE_ITEM_ID = "flight-1";
+
+export function isFlightSectionActive(
+  checked: CheckedLookup | undefined,
+): boolean {
+  return isItemChecked(checked, FLIGHT_GATE_ITEM_ID);
+}
+
 /**
  * Required checklist item ids.
  * Optional groups (e.g. Flight) stay optional unless the first item in that

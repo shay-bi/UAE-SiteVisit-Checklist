@@ -6,6 +6,7 @@ export type StoredReport = {
   checkedItemIds: string[];
   checkedLabels: string[];
   notes: string;
+  flightPricelist?: string;
   submittedAtIso: string;
   submittedAtUae: string;
 };

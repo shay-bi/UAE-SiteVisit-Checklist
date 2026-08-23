@@ -4,8 +4,10 @@ import { Resend } from "resend";
 import { isWorkEmail } from "@/lib/auth";
 import {
   findItemLabel,
+  isFlightSectionActive,
   requiredChecklistItemIds,
 } from "@/lib/checklist";
+import { isValidFlightPricelist } from "@/lib/flight-pricelists";
 import { saveReport } from "@/lib/reports-store";
 import { isValidStation } from "@/lib/stations";
 import {
@@ -32,6 +34,15 @@ function isValidPayload(body: unknown): body is SubmitPayload {
   const checked = new Set(checkedIds);
   const requiredIds = requiredChecklistItemIds(checkedIds);
   if (requiredIds.length === 0 || requiredIds.some((id) => !checked.has(id))) {
+    return false;
+  }
+
+  const flightPricelist =
+    typeof b.flightPricelist === "string" ? b.flightPricelist.trim() : "";
+  const flightActive = isFlightSectionActive(checkedIds);
+  if (flightActive) {
+    if (!isValidFlightPricelist(flightPricelist)) return false;
+  } else if (flightPricelist) {
     return false;
   }
 
@@ -68,6 +79,7 @@ export async function POST(request: Request) {
   const employeeEmail = body.employeeEmail.trim().toLowerCase();
   const siteLocation = body.siteLocation.trim();
   const notes = body.notes.trim();
+  const flightPricelist = body.flightPricelist?.trim() ?? "";
 
   const rateLimit = await checkSubmitRateLimit(employeeEmail);
   if (rateLimit.limited && rateLimit.retryAfterSeconds) {
@@ -98,6 +110,7 @@ export async function POST(request: Request) {
     siteLocation,
     checkedItemIds,
     notes,
+    flightPricelist,
     submittedAt,
   });
 
@@ -137,6 +150,7 @@ export async function POST(request: Request) {
     checkedItemIds,
     checkedLabels: checkedItemIds.map((id) => findItemLabel(id)),
     notes,
+    flightPricelist: flightPricelist || undefined,
     submittedAtIso: new Date().toISOString(),
     submittedAtUae: submittedAt,
   });

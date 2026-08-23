@@ -7,6 +7,7 @@ export type SubmissionEmailInput = {
   siteLocation: string;
   checkedItemIds: string[];
   notes: string;
+  flightPricelist?: string;
   submittedAt: string;
 };
 
@@ -151,6 +152,7 @@ export function buildSubmissionEmail(
     siteLocation,
     checkedItemIds,
     notes,
+    flightPricelist = "",
     submittedAt,
   } = input;
 
@@ -171,6 +173,7 @@ export function buildSubmissionEmail(
     `Email:       ${employeeEmail}`,
     `Submitted:   ${submittedAt} (UAE)`,
     flightIncluded ? "Flight:      Yes" : "",
+    flightPricelist ? `Pricelist:   ${flightPricelist}` : "",
     "",
     "CHECKLIST",
     "---------",
@@ -238,6 +241,20 @@ export function buildSubmissionEmail(
                             : ""
                         }
                       </tr>
+                      ${
+                        flightPricelist
+                          ? `<tr>
+                        <td colspan="2" style="padding:0 18px 16px">
+                          <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#c2410c">
+                            Flight pricelist
+                          </p>
+                          <p style="margin:0;font-size:15px;line-height:1.45;font-weight:600;color:#111827">
+                            ${escapeHtml(flightPricelist)}
+                          </p>
+                        </td>
+                      </tr>`
+                          : ""
+                      }
                     </table>
                   </td>
                 </tr>

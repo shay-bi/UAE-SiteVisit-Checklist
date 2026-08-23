@@ -6,6 +6,7 @@ export type FormDraft = {
   siteLocation: string;
   checked: Record<string, boolean>;
   notes: string;
+  flightPricelist: string;
 };
 
 const DRAFT_PREFIX = "airobotics-site-visit-draft:";
@@ -15,7 +16,7 @@ function draftKey(email: string): string {
 }
 
 export function emptyFormDraft(): FormDraft {
-  return { siteLocation: "", checked: {}, notes: "" };
+  return { siteLocation: "", checked: {}, notes: "", flightPricelist: "" };
 }
 
 export function loadFormDraft(email: string): FormDraft {
@@ -32,6 +33,8 @@ export function loadFormDraft(email: string): FormDraft {
           ? (parsed.checked as Record<string, boolean>)
           : {},
       notes: typeof parsed.notes === "string" ? parsed.notes : "",
+      flightPricelist:
+        typeof parsed.flightPricelist === "string" ? parsed.flightPricelist : "",
     };
   } catch {
     return emptyFormDraft();

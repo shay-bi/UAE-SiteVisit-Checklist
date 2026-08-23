@@ -26,4 +26,5 @@ export type SubmitPayload = {
   siteLocation: string;
   checkedItemIds: string[];
   notes: string;
+  flightPricelist?: string;
 };

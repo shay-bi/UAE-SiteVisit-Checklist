@@ -230,6 +230,12 @@ export function AdminPanel() {
               <dt className="text-muted">Submitted (UAE)</dt>
               <dd className="text-white">{selected.submittedAtUae}</dd>
             </div>
+            {selected.flightPricelist && (
+              <div>
+                <dt className="text-muted">Flight pricelist</dt>
+                <dd className="text-white">{selected.flightPricelist}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-muted">Safety checklist</dt>
               <dd>

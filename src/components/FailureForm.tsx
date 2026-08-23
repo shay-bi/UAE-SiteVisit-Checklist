@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  FLIGHT_GATE_ITEM_ID,
   SAFETY_CHECKLIST,
+  isFlightSectionActive,
   requiredChecklistItemIds,
 } from "@/lib/checklist";
 import type { StoredUser } from "@/lib/auth";
@@ -13,8 +15,10 @@ import {
   saveFormDraft,
   type FormDraft,
 } from "@/lib/form-draft";
+import { isValidFlightPricelist } from "@/lib/flight-pricelists";
 import { isValidStation } from "@/lib/stations";
 import type { ChecklistItem } from "@/lib/types";
+import { FlightPricelistSelect } from "@/components/FlightPricelistSelect";
 import { StationSelect } from "@/components/StationSelect";
 
 type Status = "idle" | "submitting" | "success" | "error";
@@ -85,16 +89,19 @@ export function FailureForm({ user }: FailureFormProps) {
   const [siteLocation, setSiteLocation] = useState("");
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState("");
+  const [flightPricelist, setFlightPricelist] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const requiredItemIds = useMemo(
     () => requiredChecklistItemIds(checked),
     [checked],
   );
+  const flightActive = isFlightSectionActive(checked);
   const draftRef = useRef<FormDraft>({
     siteLocation: "",
     checked: {},
     notes: "",
+    flightPricelist: "",
   });
   const persistEnabled = useRef(false);
 
@@ -113,8 +120,16 @@ export function FailureForm({ user }: FailureFormProps) {
     setSiteLocation(station);
     setChecked(draft.checked);
     setNotes(draft.notes);
-    if (station !== draft.siteLocation) {
-      draftRef.current = { ...draft, siteLocation: station };
+    const pricelist = isValidFlightPricelist(draft.flightPricelist)
+      ? draft.flightPricelist.trim()
+      : "";
+    setFlightPricelist(pricelist);
+    if (station !== draft.siteLocation || pricelist !== draft.flightPricelist) {
+      draftRef.current = {
+        ...draft,
+        siteLocation: station,
+        flightPricelist: pricelist,
+      };
     }
     persistEnabled.current = true;
     setReady(true);
@@ -153,10 +168,23 @@ export function FailureForm({ user }: FailureFormProps) {
     persistDraft({ ...draftRef.current, notes: value });
   }
 
+  function updateFlightPricelist(value: string) {
+    setFlightPricelist(value);
+    persistDraft({ ...draftRef.current, flightPricelist: value });
+  }
+
   function toggleItem(id: string) {
     setChecked((prev) => {
       const nextChecked = { ...prev, [id]: !prev[id] };
-      persistDraft({ ...draftRef.current, checked: nextChecked });
+      const nextDraft: FormDraft = {
+        ...draftRef.current,
+        checked: nextChecked,
+      };
+      if (id === FLIGHT_GATE_ITEM_ID && !nextChecked[id]) {
+        setFlightPricelist("");
+        nextDraft.flightPricelist = "";
+      }
+      persistDraft(nextDraft);
       return nextChecked;
     });
   }
@@ -168,6 +196,9 @@ export function FailureForm({ user }: FailureFormProps) {
     const missing = requiredItemIds.filter((id) => !checked[id]);
     if (missing.length > 0) {
       return "Please complete all required checklist items.";
+    }
+    if (flightActive && !isValidFlightPricelist(flightPricelist)) {
+      return "Please select which flight pricelist item applies.";
     }
     return null;
   }
@@ -199,6 +230,7 @@ export function FailureForm({ user }: FailureFormProps) {
           siteLocation: siteLocation.trim(),
           checkedItemIds,
           notes: notes.trim(),
+          flightPricelist: flightActive ? flightPricelist.trim() : "",
         }),
       });
 
@@ -212,11 +244,17 @@ export function FailureForm({ user }: FailureFormProps) {
 
       persistEnabled.current = false;
       clearFormDraft(user.email);
-      draftRef.current = { siteLocation: "", checked: {}, notes: "" };
+      draftRef.current = {
+        siteLocation: "",
+        checked: {},
+        notes: "",
+        flightPricelist: "",
+      };
       setStatus("success");
       setSiteLocation("");
       setChecked({});
       setNotes("");
+      setFlightPricelist("");
     } catch {
       setStatus("error");
       setErrorMessage("Network error. Check your connection and try again.");
@@ -349,6 +387,23 @@ export function FailureForm({ user }: FailureFormProps) {
                   );
                 })}
               </ul>
+              {group.id === "flight" && flightActive && (
+                <label className="mt-4 flex flex-col gap-2 border-t border-red-500/30 pt-4">
+                  <span className="text-sm font-medium text-red-200">
+                    Flight pricelist item{" "}
+                    <span className="text-red-400">*</span>
+                  </span>
+                  <p className="text-xs leading-relaxed text-red-300/80">
+                    Which pricelist item did you perform? Search and select
+                    from the list.
+                  </p>
+                  <FlightPricelistSelect
+                    value={flightPricelist}
+                    onChange={updateFlightPricelist}
+                    required
+                  />
+                </label>
+              )}
             </section>
           );
         })}
