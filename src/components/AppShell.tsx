@@ -9,6 +9,7 @@ const NAV = [
   { href: "/", label: "Checklist" },
   { href: "/flight-report", label: "Flight Report" },
   { href: "/flights-pricelist", label: "Flights Pricelist" },
+  { href: "/uav-frequency", label: "UAV Frequency" },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
