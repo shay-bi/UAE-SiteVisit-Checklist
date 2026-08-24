@@ -1,0 +1,530 @@
+                                                     CHEAT SHEET AND PROCEDURES
+CHEAT SHEET
+
+DRONE-
+drone ip: 172.18.20.90
+mc password: ai1111
+to turn drone off: nc@172.18.26.DN 10002 -> ### -> X -> Z
+arm parachute- I
+disarm parachute- J
+mc logs download -> ssh root@172.18.25.drone number->password:ai1111 -> air -> ll -> cd logs -> cd mc -> scp./red writen file airobotics@172.18.20.station number:/home/airobotics/Desktop
+Data log download -> connect with tech cable to UAV -> enter nc 172.18.27.UAVnumber 10001 (make sure there is cw ck) -> enter Datalog viewer as administrator -> open read datalog from autopilot ->choose the UAV with the right COM port -> download the DATA
+MC connection to WI-FI -> ssh to the UAV's MC -> vim/etc/network/interfaces -> I -> auto wlan0 ->iface wlan0 inet dhcp -> wpa-ssid (the network use for the upgrade) ->wpa-psk (password for the network) -> escape ->:wq -> ifdown wlan0 -> ifup wlan0
+
+HQ-
+hq ip:172.16.3.1 /172.18.20.station number
+cheif pilot password: q12we3
+taking out logs (the same process apply for the ds and hqc the same way): open hq -> open a new folder for the wanted logs -> eenter Airobotics folder -> enter logs folder -> copy the right logs (check by the hour) -> paste the logs in the new folder -> commpresses the folder (ZIP type file) -> transfer the log with WeTransfer
+Reset for hq ( and ds and hqc) sudo init 4 -> password:123456 -> sudo init 5
+flight log download: hq is not in mission -> file -> exportt -> flight logs by dates -> see how many FAA flights(any other numberin the file), SHORT flights(station number 001), REDCONS (-station number),incidnts (psql and long command and dates),failures noted in jira.
+
+DS-
+ds ip:172.16.3.21
+ds actions password: control
+pcb test password: control admin
+a terminal connection from ds to hq: ssh airobotics@172.16.3.1 -> password:123456
+
+HQC-
+hqc ip:172.16.3.11
+
+STATION-
+ip for connecting to the ds with cable:192.6.94.99
+RTMI:an application for using the robotic arm of the station while connected with cable.
+TMI: an application for using the other robotic parts of the station while connected with cable.
+in every readjust for the robotic arm starts with HOMMING.
+a password for downloading the re adjustment of the robotic arm in the RTMI: professor
+moxa drivers install:close application -> terminal -> cd downloads -> cd moxa -> sudo ./mxinst-> password: 123456 -> y -> enter -> n
+enter idrac -> connect to VNC -> open firefox -> enter ip addres for the nessecery idrac->username: root -> password:superuser -> accepting interface -> password to launch:123456
+hq idrac ip -> 172.15.2.1
+ds idrac ip -> 172.15.2.21
+hqc idrac ip -> 172.15.2.11
+
+RAPTOR-
+raptor ip 172.18.220.raptor number
+raptor username:admin
+raptor password:microcam
+to change destination ip to the drone mc -> enter channel 0 settings
+video stream directly to the computer:match ip in computer -> enter camera webgui -> open browser with 172.18.220.raptor number -> computer ip in channel  settings -> update -> open vlc media player -> open network stream -> place udp://@:1200x -> play
+
+PROVISION-
+to enter the cameras: cable to port 7 -> in internet explorer- entering ip 172.19.5.220
+provision IP: 172.19.5.220
+provision username: admin
+provision password:Doca7722
+open camera in terminal: ffplay rtsp://admin:123456@172.19.5.Camera number/profile1 
+or profile2
+camera numbers: 221,222.223.224
+another passowrd for camera sometimes:Aa123456*
+
+COMPASS-
+compass calibre password-Airobotics.
+to check compass logs after flight -> open new folder on desktop -> open airobotics- logs- stdtelemetry folders -> copy the wanted file and paste it in the wanted location -> copy usertelemetry and paste it in the wanted location->open moba -> ssh to HQ->download the files from the desktop -> open datalog viewer as administrator -> open std and user files -> press log plots -> add heli throttle, compass heading, current yaw
+
+FORTIGATE-
+forticlient password for connecting to the station: DS(station number)win(shift station number)(station number+5)sd(station number)
+fortigate ip:172.16.3.254
+fortigate username:admin
+fortigate password: 3t3vd-emb
+
+ELSIGHT-
+elsight username: admin
+elsight password: admin
+Etisalat APN:dpdronee
+Ethisalat ip: 172.17.72.44
+Du APN:policepatrol
+Du ip:172.17.172.217
+connect a new drone to the police network:enter two sims inside the drone -> enter allsight LTE server ->devices -> add device -> add the drone number and serial -> data path -> edit secured network -> enable the wanted drone -> go to the drone elsight server -> add Du and Etisalat ip in on preminices -> attach the wanted file -> connect to Airobotics enviroment -> costum the sims to the drone -> ping the drone from the HQ
+to verify APN in the drone -> ssh admin@172.18.28.drone number -> passwordHal012345678 -> open_modem -> choose modem number -> AT+CGDCONT? ->
+to delete APN CID2 -> AT+CGDCONT=2  -> AT#REBOOT
+to close terminal -> ctrl A x -> choose yes
+to delete a drone from the server -> ssh 172.17.186.44 password:123456 -> mongo ->use elsight-cloud ->db.devices_certificates.remove({"serial":done s.n"}) -> ctrl c
+to pull out ellsight logs- enter the drone elsight web -> nics -> celular -> show recording data 
+(every elsight log is 20 min)
+Elsight ssh pasword -> Hal012345678
+
+LTE allsight-
+LTE server ip: 172.17.186.44
+LTE username:admin
+LTE password: airobotics123!$$
+LTE enviroment: airobotics
+
+PRIMUS-
+primus password for client: A123456*
+primus password for supervisor:airo1234
+
+linux commands-
+ll: for seeing  files in folder
+cd: for entering folder
+df-h: to check storage that being used
+rm:to delete files, to delete folder add ./
+scp ./name of the file airobotics@172.18.20.14;/home/airobotics/Desktop
+
+OTHER-
+changing LORA ID: enter serial sessions in MOBA -> make sure you at the right COM -> speed 57600 -> enter terminal -> ID=X
+override safety password: control admin:
+ssh admin password: Hal012345678
+172.14.50.1- guy gui's website
+
+
+COMMON PROCEDURES
+
+
+MC Storage Check Remotely
+
+Enter reverse SSH to the HQ on MobaXterm
+ssh root@172.18.25.UAV number
+Password: ai1111
+df -h
+Check the /dev/sda1 storage
+
+File deletion:
+air
+cd logs
+cd leftoversLogs
+ll
+rm ./* (make sure you type the command correctly!)
+ll (should be empty now)
+You can check storage again with df -h
+
+------------------------------------------------------------
+
+Elsight Log
+
+Download logs via reverse SSH from the HQ:
+air
+cd logs
+cd elsight
+Then download the log you need. Afterwards:
+
+Open the Excel file
+Select the RSSI columns
+Then scroll through the log and look for where reception was poor. Poor reception means -80 or worse.
+Poor reception indicates a problem with the antennas / SMA cables
+
+------------------------------------------------------------
+
+Before downloading a data log - port setup
+
+Open Horizon as administrator
+Skip to Horizon
+click Settings, Horizon Settings
+Comms tab, change to correct COM port number
+General tab, update UAV label to the port number
+Save and close
+
+------------------------------------------------------------
+
+Downloading DataLog from UAV
+
+Power on the drone with a technician cable
+In Moba, write nc to the FPGA, then tech to upilot macro
+You should see cw ck lines
+Find which com port is being used at devmgmt.msc
+Open DataLog Viewer as administrator
+click File, Read log from autopilot
+Check the fourth tab in Turbo mode (in the middle of the panel)
+Connect to the COM port
+After the download, right-click on the row that gets added, Open file location, Add to archive and send the zip file
+
+------------------------------------------------------------
+
+Connecting the UAV MC to wifi
+
+Connect to the drone's MC and type:
+vim /etc/network/interfaces
+Press i to start editing, and edit the file to look like this:
+
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet static
+address 172.18.25.95
+netmask 255.255.0.0
+auto wlan0
+iface wlan0 inet dhcp
+wpa-ssid <name>
+wpa-psk <password>
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+
+Replace <name> and <password> with the WiFi details.
+When you finish editing, press Esc, then type :wq and press Enter.
+After that run ifup wlan0 and it should work.
+ping google.com to verify the internet is working.
+
+------------------------------------------------------------
+
+Transfer Video from MC to HQ 
+
+open HQ terminal and type:
+ssh root@172.18.25.UAV
+Pass: ai1111
+air
+cd video
+ll
+scp ./<FileName> airobotics@172.18.20.9:/home/airobotics/Desktop
+Replace <FileName> with the video you want to download
+Password at the end for the download: 123456
+
+------------------------------------------------------------
+
+Delete Extra APN from Modem
+After setting APNs in Elsight GUI:
+
+ssh admin@172.18.28.UAV
+Password: Hal012345678
+Run: open_modem
+Choose modem number, Enter.
+See existing APN configuration:
+AT+CGDCONT?
+You may see something like: (if you see only one row no need to delete)
++CGDCONT: 1, "IP" ...
++CGDCONT: 2, "IPV4" ...
+Delete APN CID 2 by typing:
+AT+CGDCONT=2
+AT#REBOOT
+Close the terminal using: Ctrl+A, then X, choose Yes
+Continue to check all Modems
+
+
+------------------------------------------------------------
+
+How to use the PICkit (if flashing the BMS to the battery doesn't work)
+
+Connect the colored cable to the matching connector on the battery (open the cover, it's on the upper left side), 
+the purple cable goes on the side marked J7. On the other side of the device, connect a USB cable to the computer, 
+press the button in the middle of the device, wait a bit, and then try flashing the BMS to the battery again.
+
+------------------------------------------------------------
+
+Elsight antenna connections
+
+These are the antenna connections that must be used on the Elsight. 
+If you connect them differently there will be reception problems / the SIMs won't work.
+Star this message in case you disconnected them and don't remember.
+
+------------------------------------------------------------
+
+Pricelists
+
+Disconnect and reconnect a bench:
+Check winch at home
+Verify RA calibration
+Compass calibration verification flight
+Flight with Raptor, checking vibrations during the flight
+
+New bench / new winch:
+Winch check
+Compass calibration
+Arm calibration verification
+Compass calibration verification flight
+Flight without payload
+Flight with Raptor, checking vibrations during the flight
+
+Disconnect and reconnect main board:
+Compass calibration verification flight
+Flight with PIC (pilot in command)
+Long flight with Raptor
+
+New main board:
+Compass calibration
+Compass calibration verification flight
+Flight with PIC (pilot in command)
+10 hours of flights - only first and last flight with payload
+
+New compass:
+Compass calibration
+Compass calibration verification
+Flight with PIC (pilot in command)
+Long cycle
+
+New NovAtel unit:
+Flight with PIC (pilot in command)
+Long cycle
+
+New MicroPilot:
+Compass calibration
+Compass calibration verification
+Flight with PIC (pilot in command)
+10 flight hours pricelist
+
+------------------------------------------------------------
+
+Quarterly Maintenance
+
+Delrin parts inspection
+Check the water drainage hole in the DS
+Check the magnet pin and the hole
+Check the half-centering microswitches
+Check the rail of the orange arm cables
+Cone - verify there's nothing underneath it and clean
+Station rods - verify they're straight, remove rust
+Check tension of the Roof belts
+Clean the internal AC filter
+Greasing / lubrication points for the Stage
+
+All of this in addition to all the tasks in the regular monthly maintenance.
+
+------------------------------------------------------------
+
+Configuring ADSB
+
+Connect the modem to the ADSB device
+Power on the UAV
+Connect to the wifi displayed by the modem
+Connect to the ping2020 app and configure the ADSB as the following:
+ping20S
+Alt
+001192
+Call sign depending on station, example: DPDB216
+UAV
+1200
+75<S<=150 knots
+Both 1090/978 MHz
+L <= 15
+W <= 23
+0
+0
+
+
+DETAILED PROCEDURES ( FOR NEW EMPLOYEES/TRAINEES )
+
+How to Hard Reset a station:
+
+To turn OFF the station : 
+
+1. Left to right turn off all breakers near the battery docks.
+2. Right to left turn off until the UPS( including UPS) . Then turn off UPS buttons Right to left. The UPS buttons are in the centre. Then turn on remaining buttons in first row.
+3. Then right to left turn off all buttons in the second row as well.
+
+To turn ON the station: 
+
+1. Left to right turn on all the buttons of first row until the UPS( Including UPS) . Then turn on the UPS from left to right. Then on the extreme left side of the UPS there is a reset button. Press the reset button, keep holding it until the beep sound.
+2. Left to right turn on remaining buttons of first row, then turn on buttons of second row from left to right.
+3. Turn on the buttons of battery docks row from right to left.
+
+
+DRONE CALIBRATION TO STATION(RTMI)
+
+To assign a new drone, click on Master, New Drone and add NR0415( For example UAV 415)
+
+Movement:
+
+Y + Towards Drone
+Y - Away from Drone 
+Consider you are looking at the drone from the front of it
+X + Towards Left of drone 
+X -  Towards Right of drone
+Z+ is Up 
+Z - is Down
+
+Calibrate Payload first, then left prop, right prop, open cover, Click on Payload Go to Target, and Home. Then perform calibration for battery, click go to Target in battery and close cover. Save new location after each calibration. Click Home.
+
+Download the calibration file, restart RTMI
+
+IMPORTANT  - Before Performing Test, Make sure the handle is removed from the drone. Check the payload and battery section.
+
+IMPORTANT - For Battery and Payload, after performing first calibration, Click on MASTER,   And In Y+, add +250, +80, and +1. And save new location.
+
+IMPORTANT - Make sure the Cover closed or cover open on the top right matches with real life, accordingly.
+
+
+
+To Download Logs from HQC, HQ and DS
+
+1) Connect to VPN.
+2) Open MobaX terminal .
+3) Select the wanted ssh server to get the log.
+4) Put Password 1-6.
+5) Tick Follow Terminal Folder .
+6) Type air it moves to airobotics folder.
+7) Select logs and then select hqc/hq/ds to get logs file.
+8) The file time will be 1 hour before the actual time in Dubai.
+9) Select the wanted log files and download it.
+
+
+
+How to Download DataLog from Micropilot
+1. Connect technician cable to UAV, and The Ethernet and Serial to the laptop.
+2. Turn on the drone with power supply.
+3. Open ncpa.cpl and check the IP settings, assign an IP 172.18.94.99 and subnet mask 255.255.0.0
+4. Open MobaX client and open a local terminal. Ping the UAV components to ensure connection.
+5. Open devmgmt.msc and check the COM port of serial cable.
+6. In moba Open FGPA Macro commands and click Tech to Upilot Main
+7. Open MicroPilot Horizon and make sure that the right COM port is Set Up.
+8. Close Micropilot Horizon
+9. Open Autopilot DataLog Viewer
+10. In File menu, select Download Log from Autopilot.
+
+
+
+To download MC logs with tech cable
+
+1) Open MobaX and in local terminal type ssh root@172.18.25.UAV 
+2) Password is ai1111
+3) Tick Follow Terminal Folder.
+4) Type air to goto airobotics folder.
+5) Goto logs folder and then mc folder using cd command  or simply selecting the folder to get the mc log files.
+6) The file time will be 3 hours before the actual time in Dubai.
+7) Select wanted log files and download it.
+
+-------------------------------------------------------------------------
+
+To download MC logs remotely
+
+1) Open DS and load the battery manually to make the drone ON.
+2) Then from HQ type   ssh root@172.18.25.UAV to go to mc.
+3) Password is ai1111
+4) Type air to goto airobotics folder.
+4) Goto logs folder and then mc folder using cd command.
+5) Type ll command to list all the mc log files.
+(The file time will be 3 hours before the actual time in Dubai.)
+6) Type scp ./<filename> airobotics@172.18.20.LastTwoDSno:/home/airobotics/Desktop to transfer files from mc to hq
+7) Select the log files from the Desktop folder and download it.
+
+
+
+How to check MC Storage and Configuration 
+1. Connect to HQ SSH On MobaXclient
+2. Connect to the MC via ssh. ssh root@172.18.25.UAVNUMBER. Password is ai11113.  Type df -h and press enter. Check the storage at /dev/sda1 
+4. Type air, and then cd configuration 
+Type cat mc_configuration.xml
+5.  You'll get a result  <keep-log-files-duration-hours>168<keep-log-files-duration>
+6.  If the number is 168, the configuration is good and doesn't need to be changed. If it is not 168, change it using the following steps:
+1. Type vim mc_configuration.xml
+2. To edit it, click I to enter INSERT mode
+3. Change value to 168
+4. To Save, click escape key and press [ :wq ] and Press Enter.
+
+
+
+How to Download Elsight Logs
+1. Connect to the Forticlient VPN
+2. Open MobaX client
+3. Select the SSH Server on the left for HQ.
+4. Click the follow terminal folder ☑️
+5. Type air and press enter 
+6. Click logs folder and It will be in an Elsight folder on in the logs folder itself.
+7. Download the required logs you want. Make sure you note the time difference, The time in Dubai is 4 Hours more than the time in Elsight Logs .For example, 7 Am in Dubai time, download from 3 Am in the logs.
+
+
+
+To connect MC to Wifi
+
+1) Connect to the MC using ssh root@172.18.25.UAV.
+2) Password is ai1111.
+3) type vim /etc/network/interfaces by pressing enter it will open a file  Press I to start editing .
+
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet static
+address 172.18.25.95
+netmask 255.255.0.0
+auto wlan0
+iface wlan0 inet dhcp
+wpa-ssid <name>
+wpa-psk <password>
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+
+4) Replace the name and password with the wifi name and Password .
+5) After finishing press Esc , then : wq and press Enter.
+6) Type ifup wlan0 press Enter.
+7) ping google.com and check the connectivity.
+
+
+Process of registering a new drone.
+
+1. Create xml file of the new drone(drone.drone417.xml) in HQ > Airobotics > configuration 
+2. After saving the xml file, go to HQ, Click reload entities, and check if the drone shows up in UAV List
+3. Go to DS, Load battery, check for ping.
+4.In HQ, Start test only, and wait until it shows HQ_STOP_TEST.
+5. Now you can right click on the drone and click Register Drone. After registration is done, you can right click on mission, and stop test. It will turn off the drone.
+6. Unload battery from the DS
+
+
+MONTHLY INSPECTION INSTRUCTIONS
+
+Related to connection, and taking the drone outside of UAV monthly check.
+
+-  Open the right side door, and turn the technician button up.
+-  Open the bottom panel and connect laptop to the Ethernet cable, which Is already present(white long cable). P6 connector in the fortigate
+-  open DS and check status, check for errors indicated in red. If technician button is ON there will be an alert already, it's okay.
+-  Any issues related to robotic arm, reset the system after manually putting the robotic arm in the correct position.
+-  open the payload using the tool, and do the payload check
+-  take the batteries out and using battery jig, check the batteries using BMS. 
+-  IF any battery is not identified by the jig, or no lights on the battery, it's dead and needs to be taken back to the facility 
+-  ( VERY IMPORTANT) after putting the payload and batteries back, make sure to click replace battery, replace payload in the DS.
+-  question, in what phase did we put the drone in before taking it out manually? Holding 
+-  After Performing complete UAV Monthly inspection, put battery in the drone, since the drone is connected to the network, and since laptop is already connected to the HQ, using Ethernet, technician cable is not required, drone can he directly controlled through the command prompt.
+-  After drone is put back inside manually, close all the doors. Make sure battery is removed before putting it in.
+-  make sure there is no loose tool kept in the box where movement happens.
+-  when the technician button is turned off, it will automatically perform Smart Start .
+-  Check for errors in the DS, check status of batteries, payload, arms, vision camera.
+-  make sure to put the drone is redcon mode before returning the stations.
+
+RELATED TO CLEANING 
+- close all doors firmly, check the firmness of the closed doors, and then wash the station with the pressure washer. Wash top, ac area thoroughly, also wash the external cameras.
+- clean the inside of the station using cloth, clean the stage, the sides, base, the batteries themselves, and surrounding areas.
+- change the filters of the AC. TOTAL 5 filters are there.
+- Put the station in takeoff mode and clean the railing of the doors, spray WD40 on the rails, and the holes.
+
+RED BUTTON AND BLUE BUTTON
+-The red button is emergency stop.
+-Turn the red button to reset the stop.
+-Then on the right side behind a panel, there is a blinking blue button. Click the button once to reset it. Then Homing can be performed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -222,7 +222,7 @@ export function buildSubmissionEmail(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Site Visit Checklist — Station ${escapeHtml(siteLocation)}</title>
+  <title>Mandatory Site Visit Checklist — Station ${escapeHtml(siteLocation)}</title>
 </head>
 <body style="margin:0;padding:0;background:#ececef;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111827">
   <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#ececef;padding:24px 12px">
@@ -236,7 +236,7 @@ export function buildSubmissionEmail(
                 Airobotics Dubai
               </p>
               <h1 style="margin:0;font-size:22px;line-height:1.25;font-weight:700;color:#ffffff">
-                Site Visit Checklist
+                Mandatory Site Visit Checklist
               </h1>
             </td>
           </tr>
