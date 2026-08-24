@@ -39,19 +39,19 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     variant: "danger",
     items: [
       {
-        id: "flight-1",
-        label: "Read the Flight Report before any flight",
-        inlineLink: {
-          href: "/flight-report",
-          text: "Flight Report",
-        },
-      },
-      {
         id: "flight-3",
         label: "Work with the Flights Pricelist",
         inlineLink: {
           href: "/flights-pricelist",
           text: "Flights Pricelist",
+        },
+      },
+      {
+        id: "flight-1",
+        label: "Read the Mandatory preflight protocol before any flight",
+        inlineLink: {
+          href: "/flight-report",
+          text: "Mandatory preflight protocol",
         },
       },
       {
@@ -66,13 +66,19 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     items: [
       {
         id: "close-1",
-        label: "",
-        bullets: [
-          "Station in RedCon and ready for operation",
-          "Synchronized Takeoff and Supervisor fields are restored",
-          "All work tools returned",
-          "Investigators informed; station returned to the client",
-        ],
+        label: "Station in RedCon and ready for operation",
+      },
+      {
+        id: "close-2",
+        label: "Synchronized Takeoff and Supervisor fields are restored",
+      },
+      {
+        id: "close-3",
+        label: "All work tools returned",
+      },
+      {
+        id: "close-4",
+        label: "Investigators informed; station returned to the client",
       },
     ],
   },
@@ -102,7 +108,7 @@ function isItemChecked(checked: CheckedLookup | undefined, id: string): boolean 
   return Boolean((checked as Record<string, boolean>)[id]);
 }
 
-export const FLIGHT_GATE_ITEM_ID = "flight-1";
+export const FLIGHT_GATE_ITEM_ID = "flight-3";
 
 export function isFlightSectionActive(
   checked: CheckedLookup | undefined,

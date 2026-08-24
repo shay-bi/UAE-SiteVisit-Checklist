@@ -388,6 +388,8 @@ export function FailureForm({ user }: FailureFormProps) {
                     Boolean(group.items[0] && checked[group.items[0].id]);
                   const itemRequired =
                     !group.optional || (sectionGated && index > 0);
+                  const showPricelistBelow =
+                    item.id === "flight-3" && on && flightActive;
                   return (
                     <li key={item.id}>
                       <label className="flex min-h-11 cursor-pointer items-start gap-3">
@@ -404,27 +406,23 @@ export function FailureForm({ user }: FailureFormProps) {
                         />
                         <ChecklistItemLabel item={item} />
                       </label>
+                      {showPricelistBelow && (
+                        <div className="mt-2 ml-8 flex flex-col gap-2">
+                          <span className="text-sm font-medium text-red-200">
+                            Which pricelist item?{" "}
+                            <span className="text-red-400">*</span>
+                          </span>
+                          <FlightPricelistSelect
+                            value={flightPricelist}
+                            onChange={updateFlightPricelist}
+                            required
+                          />
+                        </div>
+                      )}
                     </li>
                   );
                 })}
               </ul>
-              {group.id === "flight" && flightActive && (
-                <label className="mt-4 flex flex-col gap-2 border-t border-red-500/30 pt-4">
-                  <span className="text-sm font-medium text-red-200">
-                    Flight pricelist item{" "}
-                    <span className="text-red-400">*</span>
-                  </span>
-                  <p className="text-xs leading-relaxed text-red-300/80">
-                    Which pricelist item did you perform? Search and select
-                    from the list.
-                  </p>
-                  <FlightPricelistSelect
-                    value={flightPricelist}
-                    onChange={updateFlightPricelist}
-                    required
-                  />
-                </label>
-              )}
             </section>
           );
         })}
