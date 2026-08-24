@@ -21,6 +21,7 @@ export const FLIGHT_PRICELISTS = [
   "GPS Novatel Unit replacement & assemble/disassemble",
   "Micro-Pilot replacement (NEW)",
   "Short Cycle",
+  "Long Cycle",
   "Arm pits replacement",
   "Door replacement",
   "Door assemble/disassemble",
