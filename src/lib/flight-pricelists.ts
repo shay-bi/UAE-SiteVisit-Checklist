@@ -22,6 +22,7 @@ export const FLIGHT_PRICELISTS = [
   "Micro-Pilot replacement (NEW)",
   "Short Cycle",
   "Long Cycle",
+  "Fire Tower",
   "Arm pits replacement",
   "Door replacement",
   "Door assemble/disassemble",
