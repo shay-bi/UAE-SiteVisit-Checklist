@@ -9,7 +9,7 @@ const NAV = [
   { href: "/", label: "Checklist" },
   { href: "/cheat-sheet", label: "Cheat Sheet" },
   { href: "/flight-report", label: "Flight Report" },
-  { href: "/flights-pricelist", label: "Flights Pricelist" },
+  { href: "/flights-pricelist", label: "Work with the Flights Pricelist" },
   { href: "/uav-frequency", label: "UAVs Lora IDs" },
 ] as const;
 

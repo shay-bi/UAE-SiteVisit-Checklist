@@ -3,8 +3,9 @@ import Link from "next/link";
 import { PdfViewer } from "@/components/PdfViewer";
 
 export const metadata: Metadata = {
-  title: "Flights Pricelist | Airobotics Dubai",
-  description: "Flights Pricelist document for Airobotics Dubai site visits.",
+  title: "Work with the Flights Pricelist | Airobotics Dubai",
+  description:
+    "Work with the Flights Pricelist document for Airobotics Dubai site visits.",
 };
 
 export default function FlightsPricelistPage() {
@@ -13,7 +14,7 @@ export default function FlightsPricelistPage() {
       <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-white">
-            Flights Pricelist
+            Work with the Flights Pricelist
           </h1>
           <p className="mt-1 text-sm text-muted">
             Use this when working with the flights pricelist.

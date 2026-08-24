@@ -47,16 +47,16 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
         },
       },
       {
+        id: "flight-4",
+        label: "Got investigator approval to start the flight",
+      },
+      {
         id: "flight-1",
-        label: "Read the Mandatory preflight protocol before any flight",
+        label: "Read the Mandatory preflight protocol",
         inlineLink: {
           href: "/flight-report",
           text: "Mandatory preflight protocol",
         },
-      },
-      {
-        id: "flight-4",
-        label: "Got investigator approval to start the flight",
       },
     ],
   },
