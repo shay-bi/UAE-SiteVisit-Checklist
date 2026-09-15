@@ -40,7 +40,7 @@ export const SAFETY_CHECKLIST: ChecklistGroup[] = [
     items: [
       {
         id: "flight-3",
-        label: "Work with the Flights Pricelist",
+        label: "Flights Pricelist",
         inlineLink: {
           href: "/flights-pricelist",
           text: "Flights Pricelist",

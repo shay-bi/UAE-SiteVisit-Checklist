@@ -9,7 +9,8 @@ const NAV = [
   { href: "/", label: "Checklist" },
   { href: "/cheat-sheet", label: "Cheat Sheet" },
   { href: "/flight-report", label: "Flight Report" },
-  { href: "/flights-pricelist", label: "Work with the Flights Pricelist" },
+  { href: "/flight-report-english", label: "Flight Report - English" },
+  { href: "/flights-pricelist", label: "Flights Pricelist" },
   { href: "/uav-frequency", label: "UAVs Lora IDs" },
 ] as const;
 
@@ -87,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             const active =
               link.href === "/"
                 ? pathname === "/"
-                : pathname.startsWith(link.href);
+                : pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <Link
                 key={link.href}

@@ -3,25 +3,26 @@ import Link from "next/link";
 import { PdfViewer } from "@/components/PdfViewer";
 
 export const metadata: Metadata = {
-  title: "Flights Pricelist | Airobotics Dubai",
-  description: "Flights Pricelist document for Airobotics Dubai site visits.",
+  title: "Flight Report - English | Airobotics Dubai",
+  description:
+    "English Flight Report document for Airobotics Dubai site visits.",
 };
 
-export default function FlightsPricelistPage() {
+export default function FlightReportEnglishPage() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col px-4 pb-8 pt-16 sm:px-6">
       <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-white">
-            Flights Pricelist
+            Flight Report - English
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Use this when working with the flights pricelist.
+            Read this before any flight.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <a
-            href="/docs/flights-pricelist.pdf"
+            href="/docs/flight-report-english.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-white"
@@ -38,8 +39,8 @@ export default function FlightsPricelistPage() {
       </header>
 
       <PdfViewer
-        src="/docs/flights-pricelist.pdf"
-        title="Flights Pricelist PDF"
+        src="/docs/flight-report-english.pdf"
+        title="Flight Report - English PDF"
       />
     </div>
   );
